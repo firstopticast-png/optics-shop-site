@@ -1,0 +1,16 @@
+.DS_Store
+cat > .gitignore << 'EOF'
+.DS_Store
+node_modules/
+dist/
+build/
+.env
+.next/
+out/
+.vite/
+*.log
+*.zip
+*.mp4
+*.mov
+*.jpg
+*.png
