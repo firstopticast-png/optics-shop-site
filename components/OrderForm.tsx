@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Save, Printer, MessageCircle, Plus, Trash2 } from 'lucide-react'
+import jsPDF from 'jspdf'
 
 interface OrderItem {
   id: string
@@ -63,6 +64,17 @@ export default function OrderForm() {
   const debt = total - parseFloat(paid || "0")
 
   const handleSave = () => {
+    // Validate required fields
+    if (!customerName.trim()) {
+      alert('Пожалуйста, укажите ФИО клиента')
+      return
+    }
+    
+    if (!customerPhone.trim()) {
+      alert('Пожалуйста, укажите номер телефона клиента')
+      return
+    }
+    
     const orderData = {
       id: Date.now().toString(),
       orderNumber,
@@ -88,7 +100,8 @@ export default function OrderForm() {
     // Save to localStorage
     localStorage.setItem('optics-sonata-orders', JSON.stringify(updatedOrders))
     
-    console.log('Order saved successfully!', orderData)
+    // Show success message
+    alert(`Заказ №${orderNumber} успешно сохранен!`)
     
     // Reset form
     setOrderNumber(`2025-${String(Date.now()).slice(-3)}`)
@@ -106,11 +119,165 @@ export default function OrderForm() {
   }
 
   const handlePrint = () => {
-    console.log('Generating PDF...')
+    const doc = new jsPDF()
+    
+    // Set font
+    doc.setFont('helvetica')
+    
+    // Header
+    doc.setFontSize(20)
+    doc.setFont('helvetica', 'bold')
+    doc.text('ОПТИКА СОНАТА', 20, 30)
+    
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Заказ № ${orderNumber}`, 20, 40)
+    doc.text(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, 20, 50)
+    
+    // Customer Information
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Информация о клиенте:', 20, 70)
+    
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`ФИО: ${customerName || 'Не указано'}`, 20, 80)
+    doc.text(`Телефон: ${customerPhone || 'Не указано'}`, 20, 90)
+    doc.text(`Дата заказа: ${orderDate}`, 20, 100)
+    if (readyDate) {
+      doc.text(`Готовность: ${readyDate}`, 20, 110)
+    }
+    
+    // Prescription
+    if (prescription.od_sph || prescription.os_sph) {
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Рецепт:', 20, 130)
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      
+      // Prescription table header
+      doc.text('Глаз', 20, 140)
+      doc.text('Sph', 50, 140)
+      doc.text('Cyl', 70, 140)
+      doc.text('Ax', 90, 140)
+      
+      // OD (Right eye)
+      doc.text('OD', 20, 150)
+      doc.text(prescription.od_sph || '-', 50, 150)
+      doc.text(prescription.od_cyl || '-', 70, 150)
+      doc.text(prescription.od_ax || '-', 90, 150)
+      
+      // OS (Left eye)
+      doc.text('OS', 20, 160)
+      doc.text(prescription.os_sph || '-', 50, 160)
+      doc.text(prescription.os_cyl || '-', 70, 160)
+      doc.text(prescription.os_ax || '-', 90, 160)
+      
+      // PD and Add
+      doc.text(`Pd: ${prescription.pd || '-'}`, 20, 170)
+      doc.text(`Add: ${prescription.add || '-'}`, 70, 170)
+    }
+    
+    // Items
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Товары:', 20, 190)
+    
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    
+    let yPosition = 200
+    items.forEach((item, index) => {
+      if (item.name) {
+        doc.text(`${index + 1}. ${item.name}`, 20, yPosition)
+        doc.text(`Кол-во: ${item.quantity}`, 120, yPosition)
+        doc.text(`Цена: ${parseFloat(item.price || '0').toLocaleString()} ₸`, 150, yPosition)
+        doc.text(`Итого: ${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸`, 180, yPosition)
+        yPosition += 10
+      }
+    })
+    
+    // Totals
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Общая сумма: ${total.toLocaleString()} ₸`, 20, yPosition + 20)
+    
+    if (parseFloat(paid || '0') > 0) {
+      doc.text(`Оплачено: ${parseFloat(paid || '0').toLocaleString()} ₸`, 20, yPosition + 30)
+    }
+    
+    if (debt > 0) {
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(255, 0, 0) // Red color for debt
+      doc.text(`Долг: ${debt.toLocaleString()} ₸`, 20, yPosition + 40)
+      doc.setTextColor(0, 0, 0) // Reset to black
+    }
+    
+    // Footer
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Спасибо за ваш заказ!', 20, doc.internal.pageSize.height - 20)
+    
+    // Save the PDF
+    doc.save(`order-${orderNumber}.pdf`)
   }
 
   const handleWhatsApp = () => {
-    console.log('Sending via WhatsApp...')
+    if (!customerPhone) {
+      alert('Пожалуйста, укажите номер телефона клиента')
+      return
+    }
+    
+    // Format phone number (remove spaces, dashes, parentheses)
+    const cleanPhone = customerPhone.replace(/[\s\-\(\)]/g, '')
+    
+    // Create WhatsApp message
+    let message = `Здравствуйте! Ваш заказ №${orderNumber} готов.\n\n`
+    message += `📋 Детали заказа:\n`
+    message += `• Дата заказа: ${orderDate}\n`
+    if (readyDate) {
+      message += `• Готовность: ${readyDate}\n`
+    }
+    message += `• Общая сумма: ${total.toLocaleString()} ₸\n`
+    
+    if (parseFloat(paid || '0') > 0) {
+      message += `• Оплачено: ${parseFloat(paid || '0').toLocaleString()} ₸\n`
+    }
+    
+    if (debt > 0) {
+      message += `• Долг: ${debt.toLocaleString()} ₸\n`
+    }
+    
+    // Add prescription if available
+    if (prescription.od_sph || prescription.os_sph) {
+      message += `\n👁 Рецепт:\n`
+      message += `OD: ${prescription.od_sph || '-'}/${prescription.od_cyl || '-'}×${prescription.od_ax || '-'}\n`
+      message += `OS: ${prescription.os_sph || '-'}/${prescription.os_cyl || '-'}×${prescription.os_ax || '-'}\n`
+      message += `Pd: ${prescription.pd || '-'}, Add: ${prescription.add || '-'}\n`
+    }
+    
+    // Add items
+    if (items.some(item => item.name)) {
+      message += `\n🛍 Товары:\n`
+      items.forEach((item, index) => {
+        if (item.name) {
+          message += `${index + 1}. ${item.name} - ${item.quantity} шт. - ${parseFloat(item.price || '0').toLocaleString()} ₸\n`
+        }
+      })
+    }
+    
+    message += `\nСпасибо за ваш заказ! 🙏`
+    
+    // Encode message for URL
+    const encodedMessage = encodeURIComponent(message)
+    
+    // Create WhatsApp URL
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank')
   }
 
   return (
