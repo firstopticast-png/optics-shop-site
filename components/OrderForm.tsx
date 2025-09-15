@@ -121,104 +121,113 @@ export default function OrderForm() {
   const handlePrint = () => {
     const doc = new jsPDF()
     
-    // Set font
-    doc.setFont('helvetica')
+    // Set font to monospace for professional look
+    doc.setFont('courier')
     
-    // Header
-    doc.setFontSize(20)
-    doc.setFont('helvetica', 'bold')
-    doc.text('ОПТИКА СОНАТА', 20, 30)
+    // Header with logo area
+    doc.setFontSize(16)
+    doc.setFont('courier', 'bold')
+    doc.text('ОПТИКА СОНАТА', 20, 25)
     
+    // Contact info
+    doc.setFontSize(10)
+    doc.setFont('courier', 'normal')
+    doc.text('WhatsApp: +7 700 743 9775', 20, 35)
+    doc.text('Instagram: sonata.astana', 20, 42)
+    
+    // Order number and date (top right)
     doc.setFontSize(12)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Заказ № ${orderNumber}`, 20, 40)
-    doc.text(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, 20, 50)
+    doc.setFont('courier', 'bold')
+    doc.text(`Заказ № ${orderNumber}`, 150, 25)
+    doc.text(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, 150, 35)
     
-    // Customer Information
+    // Customer Information Section
     doc.setFontSize(14)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Информация о клиенте:', 20, 70)
+    doc.setFont('courier', 'bold')
+    doc.text('ИНФОРМАЦИЯ О КЛИЕНТЕ:', 20, 55)
     
     doc.setFontSize(12)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`ФИО: ${customerName || 'Не указано'}`, 20, 80)
-    doc.text(`Телефон: ${customerPhone || 'Не указано'}`, 20, 90)
-    doc.text(`Дата заказа: ${orderDate}`, 20, 100)
+    doc.setFont('courier', 'normal')
+    doc.text(`ФИО: ${customerName || 'Не указано'}`, 20, 65)
+    doc.text(`Телефон: ${customerPhone || 'Не указано'}`, 20, 75)
+    doc.text(`Дата заказа: ${orderDate}`, 20, 85)
     if (readyDate) {
-      doc.text(`Готовность: ${readyDate}`, 20, 110)
+      doc.text(`Готовность: ${readyDate}`, 20, 95)
     }
     
-    // Prescription
+    // Prescription Section
     if (prescription.od_sph || prescription.os_sph) {
       doc.setFontSize(14)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Рецепт:', 20, 130)
+      doc.setFont('courier', 'bold')
+      doc.text('РЕЦЕПТ:', 20, 115)
       
       doc.setFontSize(12)
-      doc.setFont('helvetica', 'normal')
+      doc.setFont('courier', 'normal')
       
-      // Prescription table header
-      doc.text('Глаз', 20, 140)
-      doc.text('Sph', 50, 140)
-      doc.text('Cyl', 70, 140)
-      doc.text('Ax', 90, 140)
+      // Prescription table with proper alignment
+      doc.text('Глаз', 20, 130)
+      doc.text('Sph', 60, 130)
+      doc.text('Cyl', 90, 130)
+      doc.text('Ax', 120, 130)
       
       // OD (Right eye)
-      doc.text('OD', 20, 150)
-      doc.text(prescription.od_sph || '-', 50, 150)
-      doc.text(prescription.od_cyl || '-', 70, 150)
-      doc.text(prescription.od_ax || '-', 90, 150)
+      doc.text('OD', 20, 145)
+      doc.text(prescription.od_sph || '-', 60, 145)
+      doc.text(prescription.od_cyl || '-', 90, 145)
+      doc.text(prescription.od_ax || '-', 120, 145)
       
       // OS (Left eye)
       doc.text('OS', 20, 160)
-      doc.text(prescription.os_sph || '-', 50, 160)
-      doc.text(prescription.os_cyl || '-', 70, 160)
-      doc.text(prescription.os_ax || '-', 90, 160)
+      doc.text(prescription.os_sph || '-', 60, 160)
+      doc.text(prescription.os_cyl || '-', 90, 160)
+      doc.text(prescription.os_ax || '-', 120, 160)
       
       // PD and Add
-      doc.text(`Pd: ${prescription.pd || '-'}`, 20, 170)
-      doc.text(`Add: ${prescription.add || '-'}`, 70, 170)
+      doc.text(`Pd: ${prescription.pd || '-'}`, 20, 175)
+      doc.text(`Add: ${prescription.add || '-'}`, 90, 175)
     }
     
-    // Items
+    // Items Section
     doc.setFontSize(14)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Товары:', 20, 190)
+    doc.setFont('courier', 'bold')
+    doc.text('ТОВАРЫ:', 20, 195)
     
     doc.setFontSize(12)
-    doc.setFont('helvetica', 'normal')
+    doc.setFont('courier', 'normal')
     
-    let yPosition = 200
+    let yPosition = 210
     items.forEach((item, index) => {
       if (item.name) {
         doc.text(`${index + 1}. ${item.name}`, 20, yPosition)
         doc.text(`Кол-во: ${item.quantity}`, 120, yPosition)
         doc.text(`Цена: ${parseFloat(item.price || '0').toLocaleString()} ₸`, 150, yPosition)
         doc.text(`Итого: ${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸`, 180, yPosition)
-        yPosition += 10
+        yPosition += 12
       }
     })
     
-    // Totals
+    // Totals Section with proper formatting
     doc.setFontSize(14)
-    doc.setFont('helvetica', 'bold')
+    doc.setFont('courier', 'bold')
     doc.text(`Общая сумма: ${total.toLocaleString()} ₸`, 20, yPosition + 20)
     
     if (parseFloat(paid || '0') > 0) {
-      doc.text(`Оплачено: ${parseFloat(paid || '0').toLocaleString()} ₸`, 20, yPosition + 30)
+      doc.text(`Оплачено: ${parseFloat(paid || '0').toLocaleString()} ₸`, 20, yPosition + 35)
     }
     
     if (debt > 0) {
-      doc.setFont('helvetica', 'bold')
+      doc.setFont('courier', 'bold')
       doc.setTextColor(255, 0, 0) // Red color for debt
-      doc.text(`Долг: ${debt.toLocaleString()} ₸`, 20, yPosition + 40)
+      doc.text(`Долг: ${debt.toLocaleString()} ₸`, 20, yPosition + 50)
       doc.setTextColor(0, 0, 0) // Reset to black
     }
     
-    // Footer
+    // Footer with contact info
     doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Спасибо за ваш заказ!', 20, doc.internal.pageSize.height - 20)
+    doc.setFont('courier', 'normal')
+    doc.text('Астана, Сыганак 32', 20, doc.internal.pageSize.height - 30)
+    doc.text('WhatsApp: +7 700 743 9770', 20, doc.internal.pageSize.height - 20)
+    doc.text('Instagram: sonata.astana', 20, doc.internal.pageSize.height - 10)
     
     // Save the PDF
     doc.save(`order-${orderNumber}.pdf`)
