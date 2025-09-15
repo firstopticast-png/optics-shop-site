@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Search, Eye, EyeOff, Calendar, User, Phone, DollarSign } from 'lucide-react'
+import { Search, Eye, EyeOff, Calendar, User, Phone, DollarSign, Save, Printer, MessageCircle, Edit } from 'lucide-react'
+import jsPDF from 'jspdf'
 
 interface OrderItem {
   id: string
@@ -45,6 +47,7 @@ export default function OrderHistory() {
   const [orders, setOrders] = useState<Order[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null)
 
   // Load orders from localStorage on component mount
   useEffect(() => {
@@ -179,6 +182,187 @@ export default function OrderHistory() {
     setExpandedOrder(expandedOrder === orderId ? null : orderId)
   }
 
+  const handleEditOrder = (order: Order) => {
+    setEditingOrder(order)
+  }
+
+  const handleSaveOrder = (order: Order) => {
+    // Update the order in the orders array
+    const updatedOrders = orders.map(o => o.id === order.id ? order : o)
+    setOrders(updatedOrders)
+    
+    // Save to localStorage
+    localStorage.setItem('optics-sonata-orders', JSON.stringify(updatedOrders))
+    
+    // Show success message
+    alert(`Заказ №${order.orderNumber} успешно обновлен!`)
+    
+    // Exit edit mode
+    setEditingOrder(null)
+  }
+
+  const handlePrintOrder = (order: Order) => {
+    const doc = new jsPDF()
+    
+    // Set font
+    doc.setFont('helvetica')
+    
+    // Header
+    doc.setFontSize(20)
+    doc.setFont('helvetica', 'bold')
+    doc.text('ОПТИКА СОНАТА', 20, 30)
+    
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Заказ № ${order.orderNumber}`, 20, 40)
+    doc.text(`Дата: ${new Date(order.orderDate).toLocaleDateString('ru-RU')}`, 20, 50)
+    
+    // Customer Information
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Информация о клиенте:', 20, 70)
+    
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`ФИО: ${order.customerName}`, 20, 80)
+    doc.text(`Телефон: ${order.customerPhone}`, 20, 90)
+    doc.text(`Дата заказа: ${order.orderDate}`, 20, 100)
+    if (order.readyDate) {
+      doc.text(`Готовность: ${order.readyDate}`, 20, 110)
+    }
+    
+    // Prescription
+    if (order.prescription.od_sph || order.prescription.os_sph) {
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Рецепт:', 20, 130)
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      
+      // Prescription table header
+      doc.text('Глаз', 20, 140)
+      doc.text('Sph', 50, 140)
+      doc.text('Cyl', 70, 140)
+      doc.text('Ax', 90, 140)
+      
+      // OD (Right eye)
+      doc.text('OD', 20, 150)
+      doc.text(order.prescription.od_sph || '-', 50, 150)
+      doc.text(order.prescription.od_cyl || '-', 70, 150)
+      doc.text(order.prescription.od_ax || '-', 90, 150)
+      
+      // OS (Left eye)
+      doc.text('OS', 20, 160)
+      doc.text(order.prescription.os_sph || '-', 50, 160)
+      doc.text(order.prescription.os_cyl || '-', 70, 160)
+      doc.text(order.prescription.os_ax || '-', 90, 160)
+      
+      // PD and Add
+      doc.text(`Pd: ${order.prescription.pd || '-'}`, 20, 170)
+      doc.text(`Add: ${order.prescription.add || '-'}`, 70, 170)
+    }
+    
+    // Items
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Товары:', 20, 190)
+    
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    
+    let yPosition = 200
+    order.items.forEach((item, index) => {
+      if (item.name) {
+        doc.text(`${index + 1}. ${item.name}`, 20, yPosition)
+        doc.text(`Кол-во: ${item.quantity}`, 120, yPosition)
+        doc.text(`Цена: ${parseFloat(item.price || '0').toLocaleString()} ₸`, 150, yPosition)
+        doc.text(`Итого: ${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸`, 180, yPosition)
+        yPosition += 10
+      }
+    })
+    
+    // Totals
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Общая сумма: ${order.total.toLocaleString()} ₸`, 20, yPosition + 20)
+    
+    if (order.paid > 0) {
+      doc.text(`Оплачено: ${order.paid.toLocaleString()} ₸`, 20, yPosition + 30)
+    }
+    
+    if (order.debt > 0) {
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(255, 0, 0) // Red color for debt
+      doc.text(`Долг: ${order.debt.toLocaleString()} ₸`, 20, yPosition + 40)
+      doc.setTextColor(0, 0, 0) // Reset to black
+    }
+    
+    // Footer
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Спасибо за ваш заказ!', 20, doc.internal.pageSize.height - 20)
+    
+    // Save the PDF
+    doc.save(`order-${order.orderNumber}.pdf`)
+  }
+
+  const handleWhatsAppOrder = (order: Order) => {
+    if (!order.customerPhone) {
+      alert('Номер телефона клиента не указан')
+      return
+    }
+    
+    // Format phone number (remove spaces, dashes, parentheses)
+    const cleanPhone = order.customerPhone.replace(/[\s\-\(\)]/g, '')
+    
+    // Create WhatsApp message
+    let message = `Здравствуйте! Ваш заказ №${order.orderNumber} готов.\n\n`
+    message += `📋 Детали заказа:\n`
+    message += `• Дата заказа: ${order.orderDate}\n`
+    if (order.readyDate) {
+      message += `• Готовность: ${order.readyDate}\n`
+    }
+    message += `• Общая сумма: ${order.total.toLocaleString()} ₸\n`
+    
+    if (order.paid > 0) {
+      message += `• Оплачено: ${order.paid.toLocaleString()} ₸\n`
+    }
+    
+    if (order.debt > 0) {
+      message += `• Долг: ${order.debt.toLocaleString()} ₸\n`
+    }
+    
+    // Add prescription if available
+    if (order.prescription.od_sph || order.prescription.os_sph) {
+      message += `\n👁 Рецепт:\n`
+      message += `OD: ${order.prescription.od_sph || '-'}/${order.prescription.od_cyl || '-'}×${order.prescription.od_ax || '-'}\n`
+      message += `OS: ${order.prescription.os_sph || '-'}/${order.prescription.os_cyl || '-'}×${order.prescription.os_ax || '-'}\n`
+      message += `Pd: ${order.prescription.pd || '-'}, Add: ${order.prescription.add || '-'}\n`
+    }
+    
+    // Add items
+    if (order.items.some(item => item.name)) {
+      message += `\n🛍 Товары:\n`
+      order.items.forEach((item, index) => {
+        if (item.name) {
+          message += `${index + 1}. ${item.name} - ${item.quantity} шт. - ${parseFloat(item.price || '0').toLocaleString()} ₸\n`
+        }
+      })
+    }
+    
+    message += `\nСпасибо за ваш заказ! 🙏`
+    
+    // Encode message for URL
+    const encodedMessage = encodeURIComponent(message)
+    
+    // Create WhatsApp URL
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank')
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -283,13 +467,34 @@ export default function OrderHistory() {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Готовность:</span>
-                              <span>{order.readyDate ? formatDate(order.readyDate) : 'Не указана'}</span>
+                              {editingOrder?.id === order.id ? (
+                                <Input
+                                  type="date"
+                                  value={editingOrder.readyDate}
+                                  onChange={(e) => setEditingOrder({...editingOrder, readyDate: e.target.value})}
+                                  className="w-32 h-6 text-xs"
+                                />
+                              ) : (
+                                <span>{order.readyDate ? formatDate(order.readyDate) : 'Не указана'}</span>
+                              )}
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Статус:</span>
-                              <Badge className={getStatusColor(order.status)}>
-                                {getStatusLabel(order.status)}
-                              </Badge>
+                              {editingOrder?.id === order.id ? (
+                                <select
+                                  value={editingOrder.status}
+                                  onChange={(e) => setEditingOrder({...editingOrder, status: e.target.value})}
+                                  className="px-2 py-1 text-xs border rounded"
+                                >
+                                  <option value="active">В работе</option>
+                                  <option value="pending">Ожидает</option>
+                                  <option value="completed">Завершен</option>
+                                </select>
+                              ) : (
+                                <Badge className={getStatusColor(order.status)}>
+                                  {getStatusLabel(order.status)}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -299,11 +504,27 @@ export default function OrderHistory() {
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-600">ФИО:</span>
-                              <span>{order.customerName}</span>
+                              {editingOrder?.id === order.id ? (
+                                <Input
+                                  value={editingOrder.customerName}
+                                  onChange={(e) => setEditingOrder({...editingOrder, customerName: e.target.value})}
+                                  className="w-40 h-6 text-xs"
+                                />
+                              ) : (
+                                <span>{order.customerName}</span>
+                              )}
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Телефон:</span>
-                              <span>{order.customerPhone}</span>
+                              {editingOrder?.id === order.id ? (
+                                <Input
+                                  value={editingOrder.customerPhone}
+                                  onChange={(e) => setEditingOrder({...editingOrder, customerPhone: e.target.value})}
+                                  className="w-40 h-6 text-xs"
+                                />
+                              ) : (
+                                <span>{order.customerPhone}</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -383,6 +604,41 @@ export default function OrderHistory() {
                             <span className="font-semibold">{formatCurrency(order.debt)}</span>
                           </div>
                         )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-3 pt-4">
+                        <Button 
+                          onClick={() => handleEditOrder(order)} 
+                          variant="outline" 
+                          className="flex items-center space-x-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          <span>Редактировать</span>
+                        </Button>
+                        <Button 
+                          onClick={() => handleSaveOrder(order)} 
+                          className="flex items-center space-x-2"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Сохранить</span>
+                        </Button>
+                        <Button 
+                          onClick={() => handlePrintOrder(order)} 
+                          variant="outline" 
+                          className="flex items-center space-x-2"
+                        >
+                          <Printer className="w-4 h-4" />
+                          <span>PDF</span>
+                        </Button>
+                        <Button 
+                          onClick={() => handleWhatsAppOrder(order)} 
+                          variant="outline" 
+                          className="flex items-center space-x-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>WhatsApp</span>
+                        </Button>
                       </div>
                     </div>
                   </>
