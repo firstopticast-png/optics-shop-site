@@ -1,0 +1,15 @@
+   ▲ Next.js 15.5.2
+   - Local:        http://localhost:3000
+   - Network:      http://169.254.0.21:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling / ...
+ ✓ Compiled / in 7.6s (700 modules)
+ GET / 200 in 8329ms
+ ⚠ Cross origin request detected from optics-sonata.lindy.site to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 517ms (404 modules)
+ GET /favicon.ico 200 in 749ms
+ GET / 200 in 412ms
