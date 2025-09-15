@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Eye, EyeOff, Lock, User } from 'lucide-react'
+import Image from 'next/image'
 
 interface LoginFormProps {
   onLogin: (username: string, password: string) => void
-  error?: string
+  error?: string | null
 }
 
 export default function LoginForm({ onLogin, error }: LoginFormProps) {
@@ -35,7 +36,7 @@ export default function LoginForm({ onLogin, error }: LoginFormProps) {
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-teal-600 rounded-full flex items-center justify-center">
-              <img src="/logo-new.png" alt="Оптика Соната" className="w-12 h-12" />
+              <Image src="/logo-new.png" alt="Оптика Соната" width={48} height={48} />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">ОПТИКА СОНАТА</CardTitle>

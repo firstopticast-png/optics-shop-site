@@ -7,6 +7,7 @@ import { FileText, Users, Package, TrendingUp, Calculator, LogOut } from 'lucide
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
 import LoginForm from '@/components/LoginForm'
 import OrderForm from '@/components/OrderForm'
+import Image from 'next/image'
 
 function MainApp() {
   const { isAuthenticated, login, logout, error } = useAuth()
@@ -24,7 +25,7 @@ function MainApp() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center">
-                <img src="/logo-new.png" alt="Оптика Соната" className="w-8 h-8" />
+                <Image src="/logo-new.png" alt="Оптика Соната" width={32} height={32} />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">ОПТИКА СОНАТА</h1>
