@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,6 +27,20 @@ interface PrescriptionData {
   add: string
 }
 
+interface Client {
+  id: string
+  name: string
+  phone: string
+  email: string
+  address: string
+  birthDate: string
+  registrationDate: string
+  totalOrders: number
+  totalSpent: number
+  lastVisit: string
+  notes: string
+}
+
 export default function OrderForm() {
   const [orderNumber, setOrderNumber] = useState(`2025-${String(Date.now()).slice(-3)}`)
   const [customerName, setCustomerName] = useState('')
@@ -45,6 +59,72 @@ export default function OrderForm() {
   ])
   
   const [paid, setPaid] = useState("")
+  
+  // Autocomplete states
+  const [clients, setClients] = useState<Client[]>([])
+  const [nameSuggestions, setNameSuggestions] = useState<Client[]>([])
+  const [phoneSuggestions, setPhoneSuggestions] = useState<Client[]>([])
+  const [showNameSuggestions, setShowNameSuggestions] = useState(false)
+  const [showPhoneSuggestions, setShowPhoneSuggestions] = useState(false)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+  const phoneInputRef = useRef<HTMLInputElement>(null)
+
+  // Load clients from localStorage
+  useEffect(() => {
+    const savedClients = localStorage.getItem('optics-sonata-clients')
+    if (savedClients) {
+      setClients(JSON.parse(savedClients))
+    }
+  }, [])
+
+  // Autocomplete functions
+  const searchClients = (query: string, field: 'name' | 'phone') => {
+    if (!query || query.length < 2) return []
+    
+    return clients.filter(client => {
+      const searchValue = field === 'name' ? client.name.toLowerCase() : client.phone
+      return searchValue.includes(query.toLowerCase())
+    }).slice(0, 5) // Limit to 5 suggestions
+  }
+
+  const handleNameChange = (value: string) => {
+    setCustomerName(value)
+    const suggestions = searchClients(value, 'name')
+    setNameSuggestions(suggestions)
+    setShowNameSuggestions(suggestions.length > 0)
+    
+    // If exact match found, auto-fill phone
+    const exactMatch = suggestions.find(client => 
+      client.name.toLowerCase() === value.toLowerCase()
+    )
+    if (exactMatch) {
+      setCustomerPhone(exactMatch.phone)
+    }
+  }
+
+  const handlePhoneChange = (value: string) => {
+    setCustomerPhone(value)
+    const suggestions = searchClients(value, 'phone')
+    setPhoneSuggestions(suggestions)
+    setShowPhoneSuggestions(suggestions.length > 0)
+    
+    // If exact match found, auto-fill name
+    const exactMatch = suggestions.find(client => 
+      client.phone === value
+    )
+    if (exactMatch) {
+      setCustomerName(exactMatch.name)
+    }
+  }
+
+  const selectSuggestion = (client: Client) => {
+    setCustomerName(client.name)
+    setCustomerPhone(client.phone)
+    setNameSuggestions([])
+    setPhoneSuggestions([])
+    setShowNameSuggestions(false)
+    setShowPhoneSuggestions(false)
+  }
 
   const addItem = () => {
     setItems([...items, { id: Date.now().toString(), name: '', quantity: "", price: "" }])
@@ -100,6 +180,47 @@ export default function OrderForm() {
     // Save to localStorage
     localStorage.setItem('optics-sonata-orders', JSON.stringify(updatedOrders))
     
+    // Add or update client in database
+    const existingClient = clients.find(client => 
+      client.name.toLowerCase() === customerName.toLowerCase() || 
+      client.phone === customerPhone
+    )
+
+    if (existingClient) {
+      // Update existing client
+      const updatedClient = {
+        ...existingClient,
+        totalOrders: existingClient.totalOrders + 1,
+        totalSpent: existingClient.totalSpent + total,
+        lastVisit: orderDate
+      }
+      
+      const updatedClients = clients.map(client => 
+        client.id === existingClient.id ? updatedClient : client
+      )
+      setClients(updatedClients)
+      localStorage.setItem('optics-sonata-clients', JSON.stringify(updatedClients))
+    } else {
+      // Add new client
+      const newClient: Client = {
+        id: Date.now().toString(),
+        name: customerName,
+        phone: customerPhone,
+        email: '',
+        address: '',
+        birthDate: '',
+        registrationDate: orderDate,
+        totalOrders: 1,
+        totalSpent: total,
+        lastVisit: orderDate,
+        notes: ''
+      }
+      
+      const updatedClients = [...clients, newClient]
+      setClients(updatedClients)
+      localStorage.setItem('optics-sonata-clients', JSON.stringify(updatedClients))
+    }
+    
     // Show success message
     alert(`Заказ №${orderNumber} успешно сохранен!`)
     
@@ -116,6 +237,12 @@ export default function OrderForm() {
     })
     setItems([{ id: '1', name: '', quantity: "", price: "" }])
     setPaid("")
+    
+    // Clear suggestions
+    setNameSuggestions([])
+    setPhoneSuggestions([])
+    setShowNameSuggestions(false)
+    setShowPhoneSuggestions(false)
   }
 
   const handlePrint = () => {
@@ -337,23 +464,67 @@ export default function OrderForm() {
 
         {/* Customer Info */}
         <div className="space-y-4">
-          <div>
+          <div className="relative">
             <Label htmlFor="customerName">ФИО</Label>
             <Input
+              ref={nameInputRef}
               id="customerName"
               value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
+              onFocus={() => {
+                if (nameSuggestions.length > 0) setShowNameSuggestions(true)
+              }}
+              onBlur={() => {
+                setTimeout(() => setShowNameSuggestions(false), 200)
+              }}
               placeholder="Введите ФИО клиента"
             />
+            {showNameSuggestions && nameSuggestions.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                {nameSuggestions.map((client) => (
+                  <div
+                    key={client.id}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    onClick={() => selectSuggestion(client)}
+                  >
+                    <div className="font-medium">{client.name}</div>
+                    <div className="text-sm text-gray-500">{client.phone}</div>
+                    <div className="text-xs text-gray-400">Заказов: {client.totalOrders}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <div>
+          <div className="relative">
             <Label htmlFor="customerPhone">Тел.</Label>
             <Input
+              ref={phoneInputRef}
               id="customerPhone"
               value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              onFocus={() => {
+                if (phoneSuggestions.length > 0) setShowPhoneSuggestions(true)
+              }}
+              onBlur={() => {
+                setTimeout(() => setShowPhoneSuggestions(false), 200)
+              }}
               placeholder="+7 700 000 0000"
             />
+            {showPhoneSuggestions && phoneSuggestions.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                {phoneSuggestions.map((client) => (
+                  <div
+                    key={client.id}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    onClick={() => selectSuggestion(client)}
+                  >
+                    <div className="font-medium">{client.name}</div>
+                    <div className="text-sm text-gray-500">{client.phone}</div>
+                    <div className="text-xs text-gray-400">Заказов: {client.totalOrders}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
