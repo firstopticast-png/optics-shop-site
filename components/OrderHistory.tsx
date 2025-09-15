@@ -132,6 +132,9 @@ export default function OrderHistory() {
                          order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.customerPhone.includes(searchTerm)
     return matchesSearch
+  }).sort((a, b) => {
+    // Sort by createdAt date in descending order (latest first)
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
 
   const formatCurrency = (amount: number) => {
