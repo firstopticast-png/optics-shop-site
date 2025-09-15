@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Search, Eye, EyeOff, Calendar, User, Phone, DollarSign, Save, Printer, MessageCircle, Edit } from 'lucide-react'
+import { Search, Eye, EyeOff, Calendar, User, Phone, DollarSign, Save, Printer, MessageCircle, Edit, Plus, Trash2 } from 'lucide-react'
 import jsPDF from 'jspdf'
 
 interface OrderItem {
@@ -184,6 +184,33 @@ export default function OrderHistory() {
 
   const handleEditOrder = (order: Order) => {
     setEditingOrder(order)
+  }
+
+  const addItemToOrder = () => {
+    if (!editingOrder) return
+    const newItem = { id: Date.now().toString(), name: '', quantity: '', price: '' }
+    setEditingOrder({
+      ...editingOrder,
+      items: [...editingOrder.items, newItem]
+    })
+  }
+
+  const removeItemFromOrder = (itemId: string) => {
+    if (!editingOrder) return
+    setEditingOrder({
+      ...editingOrder,
+      items: editingOrder.items.filter(item => item.id !== itemId)
+    })
+  }
+
+  const updateItemInOrder = (itemId: string, field: keyof OrderItem, value: string) => {
+    if (!editingOrder) return
+    setEditingOrder({
+      ...editingOrder,
+      items: editingOrder.items.map(item => 
+        item.id === itemId ? { ...item, [field]: value } : item
+      )
+    })
   }
 
   const handleSaveOrder = () => {
@@ -565,24 +592,116 @@ export default function OrderHistory() {
                             </div>
                             <div className="grid grid-cols-4 gap-2 mb-2">
                               <div className="font-medium text-sm flex items-center">OD</div>
-                              <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.od_sph || '-'}</div>
-                              <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.od_cyl || '-'}</div>
-                              <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.od_ax || '-'}</div>
+                              {editingOrder?.id === order.id ? (
+                                <>
+                                  <Input
+                                    value={editingOrder.prescription.od_sph}
+                                    onChange={(e) => setEditingOrder({
+                                      ...editingOrder,
+                                      prescription: { ...editingOrder.prescription, od_sph: e.target.value }
+                                    })}
+                                    className="h-8 text-center text-sm"
+                                    placeholder="0"
+                                  />
+                                  <Input
+                                    value={editingOrder.prescription.od_cyl}
+                                    onChange={(e) => setEditingOrder({
+                                      ...editingOrder,
+                                      prescription: { ...editingOrder.prescription, od_cyl: e.target.value }
+                                    })}
+                                    className="h-8 text-center text-sm"
+                                    placeholder="0"
+                                  />
+                                  <Input
+                                    value={editingOrder.prescription.od_ax}
+                                    onChange={(e) => setEditingOrder({
+                                      ...editingOrder,
+                                      prescription: { ...editingOrder.prescription, od_ax: e.target.value }
+                                    })}
+                                    className="h-8 text-center text-sm"
+                                    placeholder="0"
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.od_sph || '-'}</div>
+                                  <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.od_cyl || '-'}</div>
+                                  <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.od_ax || '-'}</div>
+                                </>
+                              )}
                             </div>
                             <div className="grid grid-cols-4 gap-2 mb-2">
                               <div className="font-medium text-sm flex items-center">OS</div>
-                              <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.os_sph || '-'}</div>
-                              <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.os_cyl || '-'}</div>
-                              <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.os_ax || '-'}</div>
+                              {editingOrder?.id === order.id ? (
+                                <>
+                                  <Input
+                                    value={editingOrder.prescription.os_sph}
+                                    onChange={(e) => setEditingOrder({
+                                      ...editingOrder,
+                                      prescription: { ...editingOrder.prescription, os_sph: e.target.value }
+                                    })}
+                                    className="h-8 text-center text-sm"
+                                    placeholder="0"
+                                  />
+                                  <Input
+                                    value={editingOrder.prescription.os_cyl}
+                                    onChange={(e) => setEditingOrder({
+                                      ...editingOrder,
+                                      prescription: { ...editingOrder.prescription, os_cyl: e.target.value }
+                                    })}
+                                    className="h-8 text-center text-sm"
+                                    placeholder="0"
+                                  />
+                                  <Input
+                                    value={editingOrder.prescription.os_ax}
+                                    onChange={(e) => setEditingOrder({
+                                      ...editingOrder,
+                                      prescription: { ...editingOrder.prescription, os_ax: e.target.value }
+                                    })}
+                                    className="h-8 text-center text-sm"
+                                    placeholder="0"
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.os_sph || '-'}</div>
+                                  <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.os_cyl || '-'}</div>
+                                  <div className="bg-white p-2 rounded text-center text-sm">{order.prescription.os_ax || '-'}</div>
+                                </>
+                              )}
                             </div>
                             <div className="grid grid-cols-2 gap-4 mt-2">
                               <div className="flex justify-between">
                                 <span className="text-sm text-gray-600">Pd:</span>
-                                <span className="text-sm font-medium">{order.prescription.pd || '-'}</span>
+                                {editingOrder?.id === order.id ? (
+                                  <Input
+                                    value={editingOrder.prescription.pd}
+                                    onChange={(e) => setEditingOrder({
+                                      ...editingOrder,
+                                      prescription: { ...editingOrder.prescription, pd: e.target.value }
+                                    })}
+                                    className="h-6 w-16 text-sm"
+                                    placeholder="0"
+                                  />
+                                ) : (
+                                  <span className="text-sm font-medium">{order.prescription.pd || '-'}</span>
+                                )}
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-sm text-gray-600">Add:</span>
-                                <span className="text-sm font-medium">{order.prescription.add || '-'}</span>
+                                {editingOrder?.id === order.id ? (
+                                  <Input
+                                    value={editingOrder.prescription.add}
+                                    onChange={(e) => setEditingOrder({
+                                      ...editingOrder,
+                                      prescription: { ...editingOrder.prescription, add: e.target.value }
+                                    })}
+                                    className="h-6 w-16 text-sm"
+                                    placeholder="0"
+                                  />
+                                ) : (
+                                  <span className="text-sm font-medium">{order.prescription.add || '-'}</span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -591,20 +710,76 @@ export default function OrderHistory() {
 
                       {/* Items */}
                       <div>
-                        <h4 className="font-semibold mb-3">Товары</h4>
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="font-semibold">Товары</h4>
+                          {editingOrder?.id === order.id && (
+                            <Button 
+                              onClick={addItemToOrder} 
+                              size="sm" 
+                              variant="outline"
+                              className="flex items-center space-x-1"
+                            >
+                              <Plus className="w-3 h-3" />
+                              <span>Добавить</span>
+                            </Button>
+                          )}
+                        </div>
                         <div className="space-y-2">
-                          {order.items.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded">
-                              <div className="flex-1">
-                                <span className="font-medium">{item.name}</span>
-                              </div>
-                              <div className="flex items-center space-x-4 text-sm text-gray-600">
-                                <span>Кол-во: {item.quantity}</span>
-                                <span>Цена: {formatCurrency(parseFloat(item.price))}</span>
-                                <span className="font-medium">
-                                  Итого: {formatCurrency(parseFloat(item.price) * parseFloat(item.quantity))}
-                                </span>
-                              </div>
+                          {(editingOrder?.id === order.id ? editingOrder.items : order.items).map((item) => (
+                            <div key={item.id} className="bg-gray-50 p-3 rounded">
+                              {editingOrder?.id === order.id ? (
+                                <div className="grid grid-cols-12 gap-2 items-end">
+                                  <div className="col-span-6">
+                                    <Input
+                                      value={item.name}
+                                      onChange={(e) => updateItemInOrder(item.id, 'name', e.target.value)}
+                                      placeholder="Название товара"
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                  <div className="col-span-2">
+                                    <Input
+                                      type="number"
+                                      value={item.quantity}
+                                      onChange={(e) => updateItemInOrder(item.id, 'quantity', e.target.value)}
+                                      placeholder="Кол-во"
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                  <div className="col-span-3">
+                                    <Input
+                                      type="number"
+                                      value={item.price}
+                                      onChange={(e) => updateItemInOrder(item.id, 'price', e.target.value)}
+                                      placeholder="Цена"
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                  <div className="col-span-1">
+                                    <Button
+                                      onClick={() => removeItemFromOrder(item.id)}
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-red-500 hover:text-red-700 p-1"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex justify-between items-center">
+                                  <div className="flex-1">
+                                    <span className="font-medium">{item.name}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                    <span>Кол-во: {item.quantity}</span>
+                                    <span>Цена: {formatCurrency(parseFloat(item.price))}</span>
+                                    <span className="font-medium">
+                                      Итого: {formatCurrency(parseFloat(item.price) * parseFloat(item.quantity))}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -612,20 +787,32 @@ export default function OrderHistory() {
 
                       {/* Totals */}
                       <div className="bg-blue-50 p-4 rounded-lg">
-                        <div className="flex justify-between items-center text-lg font-semibold">
-                          <span>Общая сумма:</span>
-                          <span>{formatCurrency(order.total)}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm text-gray-600 mt-1">
-                          <span>Оплачено:</span>
-                          <span>{formatCurrency(order.paid)}</span>
-                        </div>
-                        {order.debt > 0 && (
-                          <div className="flex justify-between items-center text-sm text-red-600 mt-1">
-                            <span>Долг:</span>
-                            <span className="font-semibold">{formatCurrency(order.debt)}</span>
-                          </div>
-                        )}
+                        {(() => {
+                          const currentOrder = editingOrder?.id === order.id ? editingOrder : order
+                          const currentTotal = currentOrder.items.reduce((sum, item) => 
+                            sum + (parseFloat(item.price || "0") * parseFloat(item.quantity || "0")), 0
+                          )
+                          const currentDebt = currentTotal - currentOrder.paid
+                          
+                          return (
+                            <>
+                              <div className="flex justify-between items-center text-lg font-semibold">
+                                <span>Общая сумма:</span>
+                                <span>{formatCurrency(currentTotal)}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-sm text-gray-600 mt-1">
+                                <span>Оплачено:</span>
+                                <span>{formatCurrency(currentOrder.paid)}</span>
+                              </div>
+                              {currentDebt > 0 && (
+                                <div className="flex justify-between items-center text-sm text-red-600 mt-1">
+                                  <span>Долг:</span>
+                                  <span className="font-semibold">{formatCurrency(currentDebt)}</span>
+                                </div>
+                              )}
+                            </>
+                          )
+                        })()}
                       </div>
 
                       {/* Action Buttons */}
