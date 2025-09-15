@@ -121,33 +121,33 @@ export default function OrderForm() {
   const handlePrint = () => {
     const doc = new jsPDF()
     
-    // Set font to monospace for professional look
-    doc.setFont('courier')
+    // Set font to helvetica for better compatibility
+    doc.setFont('helvetica')
     
-    // Header with logo area
-    doc.setFontSize(16)
-    doc.setFont('courier', 'bold')
+    // Header with company name
+    doc.setFontSize(18)
+    doc.setFont('helvetica', 'bold')
     doc.text('ОПТИКА СОНАТА', 20, 25)
     
     // Contact info
     doc.setFontSize(10)
-    doc.setFont('courier', 'normal')
+    doc.setFont('helvetica', 'normal')
     doc.text('WhatsApp: +7 700 743 9775', 20, 35)
     doc.text('Instagram: sonata.astana', 20, 42)
     
     // Order number and date (top right)
     doc.setFontSize(12)
-    doc.setFont('courier', 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.text(`Заказ № ${orderNumber}`, 150, 25)
     doc.text(`Дата: ${new Date().toLocaleDateString('ru-RU')}`, 150, 35)
     
     // Customer Information Section
     doc.setFontSize(14)
-    doc.setFont('courier', 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.text('ИНФОРМАЦИЯ О КЛИЕНТЕ:', 20, 55)
     
     doc.setFontSize(12)
-    doc.setFont('courier', 'normal')
+    doc.setFont('helvetica', 'normal')
     doc.text(`ФИО: ${customerName || 'Не указано'}`, 20, 65)
     doc.text(`Телефон: ${customerPhone || 'Не указано'}`, 20, 75)
     doc.text(`Дата заказа: ${orderDate}`, 20, 85)
@@ -158,11 +158,11 @@ export default function OrderForm() {
     // Prescription Section
     if (prescription.od_sph || prescription.os_sph) {
       doc.setFontSize(14)
-      doc.setFont('courier', 'bold')
+      doc.setFont('helvetica', 'bold')
       doc.text('РЕЦЕПТ:', 20, 115)
       
       doc.setFontSize(12)
-      doc.setFont('courier', 'normal')
+      doc.setFont('helvetica', 'normal')
       
       // Prescription table with proper alignment
       doc.text('Глаз', 20, 130)
@@ -189,11 +189,11 @@ export default function OrderForm() {
     
     // Items Section
     doc.setFontSize(14)
-    doc.setFont('courier', 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.text('ТОВАРЫ:', 20, 195)
     
     doc.setFontSize(12)
-    doc.setFont('courier', 'normal')
+    doc.setFont('helvetica', 'normal')
     
     let yPosition = 210
     items.forEach((item, index) => {
@@ -208,7 +208,7 @@ export default function OrderForm() {
     
     // Totals Section with proper formatting
     doc.setFontSize(14)
-    doc.setFont('courier', 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.text(`Общая сумма: ${total.toLocaleString()} ₸`, 20, yPosition + 20)
     
     if (parseFloat(paid || '0') > 0) {
@@ -216,7 +216,7 @@ export default function OrderForm() {
     }
     
     if (debt > 0) {
-      doc.setFont('courier', 'bold')
+      doc.setFont('helvetica', 'bold')
       doc.setTextColor(255, 0, 0) // Red color for debt
       doc.text(`Долг: ${debt.toLocaleString()} ₸`, 20, yPosition + 50)
       doc.setTextColor(0, 0, 0) // Reset to black
@@ -224,7 +224,7 @@ export default function OrderForm() {
     
     // Footer with contact info
     doc.setFontSize(10)
-    doc.setFont('courier', 'normal')
+    doc.setFont('helvetica', 'normal')
     doc.text('Астана, Сыганак 32', 20, doc.internal.pageSize.height - 30)
     doc.text('WhatsApp: +7 700 743 9770', 20, doc.internal.pageSize.height - 20)
     doc.text('Instagram: sonata.astana', 20, doc.internal.pageSize.height - 10)
