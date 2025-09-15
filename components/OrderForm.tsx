@@ -63,7 +63,46 @@ export default function OrderForm() {
   const debt = total - parseFloat(paid || "0")
 
   const handleSave = () => {
-    console.log('Saving order...', { orderNumber, customerName, customerPhone, items, total })
+    const orderData = {
+      id: Date.now().toString(),
+      orderNumber,
+      customerName,
+      customerPhone,
+      orderDate,
+      readyDate,
+      prescription,
+      items,
+      total,
+      paid: parseFloat(paid || "0"),
+      debt: total - parseFloat(paid || "0"),
+      createdAt: new Date().toISOString(),
+      status: 'active'
+    }
+
+    // Get existing orders from localStorage
+    const existingOrders = JSON.parse(localStorage.getItem('optics-sonata-orders') || '[]')
+    
+    // Add new order
+    const updatedOrders = [...existingOrders, orderData]
+    
+    // Save to localStorage
+    localStorage.setItem('optics-sonata-orders', JSON.stringify(updatedOrders))
+    
+    console.log('Order saved successfully!', orderData)
+    
+    // Reset form
+    setOrderNumber(`2025-${String(Date.now()).slice(-3)}`)
+    setCustomerName('')
+    setCustomerPhone('')
+    setOrderDate(new Date().toISOString().split('T')[0])
+    setReadyDate('')
+    setPrescription({
+      od_sph: '', od_cyl: '', od_ax: '',
+      os_sph: '', os_cyl: '', os_ax: '',
+      pd: '', add: ''
+    })
+    setItems([{ id: '1', name: '', quantity: "", price: "" }])
+    setPaid("")
   }
 
   const handlePrint = () => {

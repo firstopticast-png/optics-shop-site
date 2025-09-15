@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { FileText, Users, Package, TrendingUp, Calculator, LogOut } from 'lucide-react'
+import { FileText, Users, Package, TrendingUp, Calculator, LogOut, History } from 'lucide-react'
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
 import LoginForm from '@/components/LoginForm'
 import OrderForm from '@/components/OrderForm'
+import OrderHistory from '@/components/OrderHistory'
 import ClientsDatabase from '@/components/ClientsDatabase'
 import ProductsDatabase from '@/components/ProductsDatabase'
 import SalesReports from '@/components/SalesReports'
@@ -63,10 +64,14 @@ function MainApp() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="orders" className="flex items-center space-x-2">
               <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Заказы</span>
+              <span className="hidden sm:inline">Новый заказ</span>
+            </TabsTrigger>
+            <TabsTrigger value="order-history" className="flex items-center space-x-2">
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">История заказов</span>
             </TabsTrigger>
             <TabsTrigger value="clients" className="flex items-center space-x-2">
               <Users className="w-4 h-4" />
@@ -92,6 +97,10 @@ function MainApp() {
 
           <TabsContent value="orders">
             <OrderForm />
+          </TabsContent>
+
+          <TabsContent value="order-history">
+            <OrderHistory />
           </TabsContent>
 
           <TabsContent value="clients">
