@@ -186,16 +186,29 @@ export default function OrderHistory() {
     setEditingOrder(order)
   }
 
-  const handleSaveOrder = (order: Order) => {
+  const handleSaveOrder = () => {
+    if (!editingOrder) return
+    
+    // Validate required fields
+    if (!editingOrder.customerName.trim()) {
+      alert('Пожалуйста, укажите ФИО клиента')
+      return
+    }
+    
+    if (!editingOrder.customerPhone.trim()) {
+      alert('Пожалуйста, укажите номер телефона клиента')
+      return
+    }
+    
     // Update the order in the orders array
-    const updatedOrders = orders.map(o => o.id === order.id ? order : o)
+    const updatedOrders = orders.map(o => o.id === editingOrder.id ? editingOrder : o)
     setOrders(updatedOrders)
     
     // Save to localStorage
     localStorage.setItem('optics-sonata-orders', JSON.stringify(updatedOrders))
     
     // Show success message
-    alert(`Заказ №${order.orderNumber} успешно обновлен!`)
+    alert(`Заказ №${editingOrder.orderNumber} успешно обновлен!`)
     
     // Exit edit mode
     setEditingOrder(null)
@@ -617,21 +630,24 @@ export default function OrderHistory() {
 
                       {/* Action Buttons */}
                       <div className="flex flex-wrap gap-3 pt-4">
-                        <Button 
-                          onClick={() => handleEditOrder(order)} 
-                          variant="outline" 
-                          className="flex items-center space-x-2"
-                        >
-                          <Edit className="w-4 h-4" />
-                          <span>Редактировать</span>
-                        </Button>
-                        <Button 
-                          onClick={() => handleSaveOrder(order)} 
-                          className="flex items-center space-x-2"
-                        >
-                          <Save className="w-4 h-4" />
-                          <span>Сохранить</span>
-                        </Button>
+                        {editingOrder?.id === order.id ? (
+                          <Button 
+                            onClick={handleSaveOrder} 
+                            className="flex items-center space-x-2"
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Сохранить</span>
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={() => handleEditOrder(order)} 
+                            variant="outline" 
+                            className="flex items-center space-x-2"
+                          >
+                            <Edit className="w-4 h-4" />
+                            <span>Редактировать</span>
+                          </Button>
+                        )}
                         <Button 
                           onClick={() => handlePrintOrder(order)} 
                           variant="outline" 
