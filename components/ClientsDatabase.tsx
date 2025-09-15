@@ -212,41 +212,41 @@ export default function ClientsDatabase() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Имя</TableHead>
-                  <TableHead>Телефон</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Заказов</TableHead>
-                  <TableHead>Потрачено</TableHead>
-                  <TableHead>Последний визит</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Действия</TableHead>
+                  <TableHead className="text-left">Имя</TableHead>
+                  <TableHead className="text-left">Телефон</TableHead>
+                  <TableHead className="text-left">Email</TableHead>
+                  <TableHead className="text-center">Заказов</TableHead>
+                  <TableHead className="text-right">Потрачено</TableHead>
+                  <TableHead className="text-center">Последний визит</TableHead>
+                  <TableHead className="text-center">Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredClients.map((client) => (
                   <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.name}</TableCell>
-                    <TableCell className="flex items-center space-x-2">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <span>{client.phone}</span>
+                    <TableCell className="font-medium text-left">{client.name}</TableCell>
+                    <TableCell className="text-left">
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <span>{client.phone}</span>
+                      </div>
                     </TableCell>
-                    <TableCell className="flex items-center space-x-2">
-                      <Mail className="w-4 h-4 text-gray-400" />
-                      <span>{client.email || 'Не указан'}</span>
+                    <TableCell className="text-left">
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                        <span>{client.email || 'Не указан'}</span>
+                      </div>
                     </TableCell>
-                    <TableCell>{client.totalOrders}</TableCell>
-                    <TableCell>{formatCurrency(client.totalSpent)}</TableCell>
-                    <TableCell className="flex items-center space-x-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span>{formatDate(client.lastVisit)}</span>
+                    <TableCell className="text-center">{client.totalOrders}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(client.totalSpent)}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center space-x-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span>{formatDate(client.lastVisit)}</span>
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={client.totalSpent > 50000 ? "default" : "secondary"}>
-                        {client.totalSpent > 50000 ? 'VIP' : 'Обычный'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
+                    <TableCell className="text-center">
+                      <div className="flex justify-center space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
