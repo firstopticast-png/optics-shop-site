@@ -7,6 +7,11 @@ import { FileText, Users, Package, TrendingUp, Calculator, LogOut } from 'lucide
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
 import LoginForm from '@/components/LoginForm'
 import OrderForm from '@/components/OrderForm'
+import ClientsDatabase from '@/components/ClientsDatabase'
+import ProductsDatabase from '@/components/ProductsDatabase'
+import SalesReports from '@/components/SalesReports'
+import FinancialDashboard from '@/components/FinancialDashboard'
+import CostManagement from '@/components/CostManagement'
 import Image from 'next/image'
 
 function MainApp() {
@@ -90,38 +95,23 @@ function MainApp() {
           </TabsContent>
 
           <TabsContent value="clients">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900">База клиентов</h2>
-              <p className="text-gray-500 mt-2">Раздел в разработке</p>
-            </div>
+            <ClientsDatabase />
           </TabsContent>
 
           <TabsContent value="products">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900">База товаров</h2>
-              <p className="text-gray-500 mt-2">Раздел в разработке</p>
-            </div>
+            <ProductsDatabase />
           </TabsContent>
 
           <TabsContent value="sales">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900">Отчеты по продажам</h2>
-              <p className="text-gray-500 mt-2">Раздел в разработке</p>
-            </div>
+            <SalesReports />
           </TabsContent>
 
           <TabsContent value="finance">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900">Финансовая панель</h2>
-              <p className="text-gray-500 mt-2">Раздел в разработке</p>
-            </div>
+            <FinancialDashboard />
           </TabsContent>
 
           <TabsContent value="costs">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900">Управление себестоимостью</h2>
-              <p className="text-gray-500 mt-2">Раздел в разработке</p>
-            </div>
+            <CostManagement />
           </TabsContent>
         </Tabs>
       </main>
