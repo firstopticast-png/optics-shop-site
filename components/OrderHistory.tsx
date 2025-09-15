@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -86,7 +85,7 @@ export default function OrderHistory() {
           readyDate: '2024-12-18',
           prescription: {
             od_sph: '+1.5', od_cyl: '0', od_ax: '0',
-            os_sph: '+1.25', os_cyl: '0', od_ax: '0',
+            os_sph: '+1.25', os_cyl: '0', os_ax: '0',
             pd: '60', add: '1.5'
           },
           items: [
