@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -43,25 +42,6 @@ export default function FinancialDashboard() {
   const [timeFilter, setTimeFilter] = useState('month')
   const [typeFilter, setTypeFilter] = useState('all')
 
-  const incomeCategories = [
-    'Продажи очков',
-    'Продажи линз',
-    'Услуги',
-    'Аксессуары',
-    'Гарантийное обслуживание',
-    'Другие доходы'
-  ]
-
-  const expenseCategories = [
-    'Закупка товаров',
-    'Аренда помещения',
-    'Зарплата сотрудников',
-    'Коммунальные услуги',
-    'Реклама и маркетинг',
-    'Оборудование',
-    'Налоги',
-    'Другие расходы'
-  ]
 
   // Load financial data from localStorage on component mount
   useEffect(() => {
@@ -139,6 +119,40 @@ export default function FinancialDashboard() {
 
   // Calculate stats whenever financial data changes
   useEffect(() => {
+    const getFilteredData = () => {
+      let filtered = financialData
+
+      // Filter by time
+      const now = new Date()
+      const filterDate = new Date()
+      
+      switch (timeFilter) {
+        case 'week':
+          filterDate.setDate(now.getDate() - 7)
+          break
+        case 'month':
+          filterDate.setMonth(now.getMonth() - 1)
+          break
+        case 'quarter':
+          filterDate.setMonth(now.getMonth() - 3)
+          break
+        case 'year':
+          filterDate.setFullYear(now.getFullYear() - 1)
+          break
+      }
+
+      if (timeFilter !== 'all') {
+        filtered = filtered.filter(item => new Date(item.date) >= filterDate)
+      }
+
+      // Filter by type
+      if (typeFilter !== 'all') {
+        filtered = filtered.filter(item => item.type === typeFilter)
+      }
+
+      return filtered
+    }
+
     const filteredData = getFilteredData()
     const totalIncome = filteredData
       .filter(item => item.type === 'income' && item.status === 'completed')

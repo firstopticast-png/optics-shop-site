@@ -408,7 +408,7 @@ export default function ProductsDatabase() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="type">Тип</Label>
-              <Select value={formData.type || 'frame'} onValueChange={(value: any) => setFormData({...formData, type: value})}>
+              <Select value={formData.type || 'frame'} onValueChange={(value: 'frame' | 'lens' | 'accessory' | 'service') => setFormData({...formData, type: value})}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

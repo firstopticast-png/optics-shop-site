@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -113,6 +112,40 @@ export default function SalesReports() {
 
   // Calculate stats whenever sales data changes
   useEffect(() => {
+    const getFilteredData = () => {
+      let filtered = salesData
+
+      // Filter by time
+      const now = new Date()
+      const filterDate = new Date()
+      
+      switch (timeFilter) {
+        case 'week':
+          filterDate.setDate(now.getDate() - 7)
+          break
+        case 'month':
+          filterDate.setMonth(now.getMonth() - 1)
+          break
+        case 'quarter':
+          filterDate.setMonth(now.getMonth() - 3)
+          break
+        case 'year':
+          filterDate.setFullYear(now.getFullYear() - 1)
+          break
+      }
+
+      if (timeFilter !== 'all') {
+        filtered = filtered.filter(sale => new Date(sale.date) >= filterDate)
+      }
+
+      // Filter by status
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(sale => sale.status === statusFilter)
+      }
+
+      return filtered
+    }
+
     const filteredData = getFilteredData()
     const totalRevenue = filteredData.reduce((sum, sale) => sum + sale.totalAmount, 0)
     const totalOrders = filteredData.length

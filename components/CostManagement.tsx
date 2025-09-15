@@ -438,7 +438,6 @@ export default function CostManagement() {
               </TableHeader>
               <TableBody>
                 {filteredCosts.map((cost) => {
-                  const budgetStatus = getBudgetStatus(cost.actualSpent, cost.budget)
                   const remaining = cost.budget - cost.actualSpent
                   return (
                     <TableRow key={cost.id}>
@@ -551,7 +550,7 @@ export default function CostManagement() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="priority">Приоритет</Label>
-              <Select value={formData.priority || 'medium'} onValueChange={(value: any) => setFormData({...formData, priority: value})}>
+              <Select value={formData.priority || 'medium'} onValueChange={(value: 'low' | 'medium' | 'high' | 'critical') => setFormData({...formData, priority: value})}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -564,7 +563,7 @@ export default function CostManagement() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Статус</Label>
-              <Select value={formData.status || 'planned'} onValueChange={(value: any) => setFormData({...formData, status: value})}>
+              <Select value={formData.status || 'planned'} onValueChange={(value: 'planned' | 'in_progress' | 'completed' | 'overdue') => setFormData({...formData, status: value})}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
