@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Save, Printer, MessageCircle, Plus, Trash2 } from 'lucide-react'
 import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
 
 interface OrderItem {
   id: string
@@ -242,7 +241,7 @@ export default function OrderForm() {
     setShowPhoneSuggestions(false)
   }
 
-  const handlePrint = async () => {
+  const handlePrint = () => {
     try {
       // Create a temporary div for PDF generation
       const printDiv = document.createElement('div')
@@ -256,6 +255,7 @@ export default function OrderForm() {
       printDiv.style.lineHeight = '1.4'
       printDiv.style.color = '#000'
       printDiv.style.backgroundColor = '#fff'
+      printDiv.style.pageBreakInside = 'avoid'
       
       // Add content to the div
       printDiv.innerHTML = `
@@ -370,41 +370,63 @@ export default function OrderForm() {
       // Add to DOM
       document.body.appendChild(printDiv)
       
-      // Wait for content to render
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank', 'width=800,height=600')
       
-      // Capture the element as canvas
-      const canvas = await html2canvas(printDiv, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      })
-      
-      // Create PDF
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      
-      // Calculate dimensions to fit the content on one page
-      const imgWidth = 210 // A4 width in mm
-      const pageHeight = 297 // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      
-      // If content fits on one page, add it directly
-      if (imgHeight <= pageHeight) {
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight)
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Заказ ${orderNumber}</title>
+              <style>
+                @media print {
+                  @page {
+                    size: A4;
+                    margin: 0;
+                  }
+                  body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: Arial, sans-serif;
+                  }
+                  * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                  }
+                }
+                body {
+                  font-family: Arial, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                }
+              </style>
+            </head>
+            <body>
+              ${printDiv.innerHTML}
+            </body>
+          </html>
+        `)
+        
+        printWindow.document.close()
+        
+        // Wait for content to load, then print
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print()
+            printWindow.close()
+          }, 500)
+        }
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(printDiv)
+        }, 1000)
       } else {
-        // Scale down to fit on one page
-        const scale = pageHeight / imgHeight
-        const scaledWidth = imgWidth * scale
-        const scaledHeight = pageHeight
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, scaledWidth, scaledHeight)
+        // Fallback to regular print if popup blocked
+        window.print()
+        document.body.removeChild(printDiv)
       }
-      
-      // Download the PDF
-      pdf.save(`order-${orderNumber}.pdf`)
-      
-      // Clean up
-      document.body.removeChild(printDiv)
       
     } catch (error) {
       console.error('Error generating PDF:', error)
