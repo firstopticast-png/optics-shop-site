@@ -438,7 +438,7 @@ export default function OrderForm() {
     }
   }
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     if (!customerPhone) {
       alert('Пожалуйста, укажите номер телефона клиента')
       return
@@ -447,42 +447,9 @@ export default function OrderForm() {
     // Format phone number (remove spaces, dashes, parentheses)
     const cleanPhone = customerPhone.replace(/[\s\-\(\)]/g, '')
     
-    // Create WhatsApp message
-    let message = `Здравствуйте! Ваш заказ №${orderNumber} готов.\n\n`
-    message += `📋 Детали заказа:\n`
-    message += `• Дата заказа: ${orderDate}\n`
-    if (readyDate) {
-      message += `• Готовность: ${readyDate}\n`
-    }
-    message += `• Общая сумма: ${total.toLocaleString()} ₸\n`
-    
-    if (parseFloat(paid || '0') > 0) {
-      message += `• Оплачено: ${parseFloat(paid || '0').toLocaleString()} ₸\n`
-    }
-    
-    if (debt > 0) {
-      message += `• Долг: ${debt.toLocaleString()} ₸\n`
-    }
-    
-    // Add prescription if available
-    if (prescription.od_sph || prescription.os_sph) {
-      message += `\n👁 Рецепт:\n`
-      message += `OD: ${prescription.od_sph || '-'}/${prescription.od_cyl || '-'}×${prescription.od_ax || '-'}\n`
-      message += `OS: ${prescription.os_sph || '-'}/${prescription.os_cyl || '-'}×${prescription.os_ax || '-'}\n`
-      message += `Pd: ${prescription.pd || '-'}, Add: ${prescription.add || '-'}\n`
-    }
-    
-    // Add items
-    if (items.some(item => item.name)) {
-      message += `\n🛍 Товары:\n`
-      items.forEach((item, index) => {
-        if (item.name) {
-          message += `${index + 1}. ${item.name} - ${item.quantity} шт. - ${parseFloat(item.price || '0').toLocaleString()} ₸\n`
-        }
-      })
-    }
-    
-    message += `\nСпасибо за ваш заказ! 🙏`
+    // Create simple WhatsApp message
+    const message = `Вас приветствует Оптика Соната Астана! 
+Высылаем бланк Вашего заказа.`
     
     // Encode message for URL
     const encodedMessage = encodeURIComponent(message)
@@ -490,8 +457,220 @@ export default function OrderForm() {
     // Create WhatsApp URL
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
     
-    // Open WhatsApp
-    window.open(whatsappUrl, '_blank')
+    // Generate PDF first
+    try {
+      // Create a temporary div for PDF generation
+      const printDiv = document.createElement('div')
+      printDiv.style.position = 'absolute'
+      printDiv.style.left = '-9999px'
+      printDiv.style.top = '-9999px'
+      printDiv.style.width = '210mm'
+      printDiv.style.padding = '10mm 15mm'
+      printDiv.style.fontFamily = 'Arial, sans-serif'
+      printDiv.style.fontSize = '10px'
+      printDiv.style.lineHeight = '1.2'
+      printDiv.style.color = '#000'
+      printDiv.style.backgroundColor = '#fff'
+      printDiv.style.pageBreakInside = 'avoid'
+      
+      // Add content to the div (same as handlePrint)
+      printDiv.innerHTML = `
+        <div style="text-align: center; margin-bottom: 15px;">
+          <img src="/logo-round.png" alt="ОПТИКА СОНАТА" style="max-width: 150px; height: auto; margin-bottom: 5px;" />
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 11px;">
+          <div></div>
+          <div style="text-align: right;">
+            <div style="font-weight: bold;">Заказ № ${orderNumber}</div>
+            <div>Дата: ${new Date().toLocaleDateString('ru-RU')}</div>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <div style="font-size: 11px; line-height: 1.3;">
+            <div><strong>ФИО:</strong> ${customerName || 'Не указано'}</div>
+            <div><strong>Телефон:</strong> ${customerPhone || 'Не указано'}</div>
+            <div><strong>Дата заказа:</strong> ${orderDate}</div>
+            ${readyDate ? `<div><strong>Готовность:</strong> ${readyDate}</div>` : ''}
+          </div>
+        </div>
+        
+        ${prescription.od_sph || prescription.os_sph ? `
+        <div style="margin-bottom: 15px;">
+          <h2 style="font-size: 12px; font-weight: bold; margin: 0 0 8px 0; color: #1f2937;">РЕЦЕПТ</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Глаз</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Sph</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Cyl</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Ax</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center; font-weight: bold;">OD</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${prescription.od_sph || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${prescription.od_cyl || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${prescription.od_ax || '-'}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center; font-weight: bold;">OS</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${prescription.os_sph || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${prescription.os_cyl || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${prescription.os_ax || '-'}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 5px; font-size: 10px;">
+            <span style="margin-right: 20px;"><strong>Pd:</strong> ${prescription.pd || '-'}</span>
+            <span><strong>Add:</strong> ${prescription.add || '-'}</span>
+          </div>
+        </div>
+        ` : ''}
+        
+        <div style="margin-bottom: 15px;">
+          <h2 style="font-size: 12px; font-weight: bold; margin: 0 0 8px 0; color: #1f2937;">ТОВАРЫ</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: left;">№</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: left;">Наименование</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Кол-во</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">Цена</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">Итого</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.filter(item => item.name).map((item, index) => `
+                <tr>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${index + 1}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px;">${item.name}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${item.quantity}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">${parseFloat(item.price || '0').toLocaleString()} ₸</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: right; font-weight: bold;">${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">
+            Общая сумма: ${total.toLocaleString()} ₸
+          </div>
+          ${parseFloat(paid || '0') > 0 ? `
+            <div style="font-size: 10px; margin-bottom: 3px;">
+              Оплачено: ${parseFloat(paid || '0').toLocaleString()} ₸
+            </div>
+          ` : ''}
+          ${debt > 0 ? `
+            <div style="font-size: 10px; color: #dc2626; font-weight: bold;">
+              Долг: ${debt.toLocaleString()} ₸
+            </div>
+          ` : ''}
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #d1d5db; font-size: 9px; color: #6b7280; text-align: center;">
+          <div>Астана, Сыганак 32</div>
+          <div>WhatsApp: +7 700 743 9770 | Instagram: sonata.astana</div>
+        </div>
+      `
+      
+      // Add to DOM
+      document.body.appendChild(printDiv)
+      
+      // Create a new window for automatic download
+      const printWindow = window.open('', '_blank', 'width=800,height=600')
+      
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Заказ ${orderNumber}</title>
+              <style>
+                @media print {
+                  @page {
+                    size: A4;
+                    margin: 10mm 15mm;
+                  }
+                  body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: Arial, sans-serif;
+                    font-size: 10px;
+                    line-height: 1.2;
+                  }
+                  * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                  }
+                  .print-content {
+                    page-break-inside: avoid;
+                    max-height: 100vh;
+                    overflow: hidden;
+                  }
+                }
+                body {
+                  font-family: Arial, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="print-content">
+                ${printDiv.innerHTML}
+              </div>
+              <script>
+                // Auto-download PDF without print dialog
+                window.onload = function() {
+                  setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                      window.close();
+                    }, 1000);
+                  }, 100);
+                };
+              </script>
+            </body>
+          </html>
+        `)
+        
+        printWindow.document.close()
+        
+        // Auto-download PDF without print dialog
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print()
+            setTimeout(() => {
+              printWindow.close()
+            }, 1000)
+          }, 100)
+        }
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(printDiv)
+        }, 1000)
+      } else {
+        // Fallback to regular print if popup blocked
+        window.print()
+        document.body.removeChild(printDiv)
+      }
+      
+      // Wait a moment for PDF to download, then open WhatsApp
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank')
+      }, 2000)
+      
+    } catch (error) {
+      console.error('Error generating PDF for WhatsApp:', error)
+      // Still open WhatsApp even if PDF generation fails
+      window.open(whatsappUrl, '_blank')
+    }
   }
 
   return (
