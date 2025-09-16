@@ -382,7 +382,7 @@ export default function OrderHistory() {
       // Add content to the div
       printDiv.innerHTML = `
         <div style="text-align: center; margin-bottom: 30px;">
-          <img src="/logo.png" alt="ОПТИКА СОНАТА" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
+          <img src="/logo-new.png" alt="ОПТИКА СОНАТА" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
         </div>
         
         <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
