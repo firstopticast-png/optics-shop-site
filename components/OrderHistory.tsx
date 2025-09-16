@@ -704,7 +704,8 @@ export default function OrderHistory() {
             doc.text('WhatsApp: +7 700 743 9770 | Instagram: sonata.astana', 105, 285, { align: 'center' })
             
             // Show print dialog instead of saving PDF
-            printWindow.print()
+            // Note: printWindow is not defined in this context, using window.print() instead
+            window.print()
       
       // Wait a moment for PDF to download, then open WhatsApp
       setTimeout(() => {
