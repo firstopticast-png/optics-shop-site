@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Search, Eye, EyeOff, Calendar, User, Phone, DollarSign, Save, Printer, MessageCircle, Edit, Plus, Trash2 } from 'lucide-react'
+import { Search, Eye, EyeOff, Calendar, User, Phone, Save, Printer, MessageCircle, Edit, Plus, Trash2 } from 'lucide-react'
 import jsPDF from 'jspdf'
 
 interface OrderItem {
@@ -611,17 +611,34 @@ export default function OrderHistory() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <User className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium">{order.customerName}</span>
+                        {editingOrder?.id === order.id ? (
+                          <Input
+                            value={editingOrder.customerName}
+                            onChange={(e) => setEditingOrder({...editingOrder, customerName: e.target.value})}
+                            className="h-6 text-sm font-medium"
+                            placeholder="Имя клиента"
+                          />
+                        ) : (
+                          <span className="font-medium">{order.customerName}</span>
+                        )}
                       </div>
                       <div className="flex items-center space-x-2">
                         <Phone className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{order.customerPhone}</span>
+                        {editingOrder?.id === order.id ? (
+                          <Input
+                            value={editingOrder.customerPhone}
+                            onChange={(e) => setEditingOrder({...editingOrder, customerPhone: e.target.value})}
+                            className="h-6 text-sm"
+                            placeholder="Телефон"
+                          />
+                        ) : (
+                          <span className="text-sm text-gray-600">{order.customerPhone}</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
                         <div className="flex items-center space-x-2">
-                          <DollarSign className="w-4 h-4 text-gray-400" />
                           <span className="font-bold text-lg">{formatCurrency(order.total)}</span>
                         </div>
                         {order.debt > 0 && (
