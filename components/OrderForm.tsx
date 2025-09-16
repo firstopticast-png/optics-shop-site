@@ -259,11 +259,11 @@ export default function OrderForm() {
       
       // Add content to the div
       printDiv.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px;">
-          <img src="/logo-new.png" alt="ОПТИКА СОНАТА" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="/logo-new.png" alt="ОПТИКА СОНАТА" style="max-width: 200px; height: auto; margin-bottom: 10px; border: 2px solid #000;" />
         </div>
         
-        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px;">
           <div></div>
           <div style="text-align: right;">
             <div style="font-weight: bold;">Заказ № ${orderNumber}</div>
@@ -271,7 +271,7 @@ export default function OrderForm() {
           </div>
         </div>
         
-        <div style="margin-bottom: 25px;">
+        <div style="margin-bottom: 20px;">
           <div style="font-size: 14px; line-height: 1.6;">
             <div><strong>ФИО:</strong> ${customerName || 'Не указано'}</div>
             <div><strong>Телефон:</strong> ${customerPhone || 'Не указано'}</div>
