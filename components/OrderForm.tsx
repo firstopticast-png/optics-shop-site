@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Save, Printer, MessageCircle, Plus, Trash2 } from 'lucide-react'
 import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 interface OrderItem {
   id: string
@@ -241,136 +242,174 @@ export default function OrderForm() {
     setShowPhoneSuggestions(false)
   }
 
-  const handlePrint = () => {
-    // Create a temporary HTML element for PDF generation
-    const printContent = document.createElement('div')
-    printContent.style.cssText = `
-      width: 210mm;
-      min-height: 297mm;
-      padding: 20mm;
-      font-family: Arial, sans-serif;
-      background: white;
-      color: black;
-      line-height: 1.4;
-    `
-    
-    printContent.innerHTML = `
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="font-size: 24px; font-weight: bold; margin: 0 0 10px 0; color: #1f2937;">ОПТИКА СОНАТА</h1>
-        <div style="font-size: 12px; color: #6b7280;">
-          <div>WhatsApp: +7 700 743 9775</div>
-          <div>Instagram: sonata.astana</div>
-        </div>
-      </div>
+  const handlePrint = async () => {
+    try {
+      // Create a temporary div for PDF generation
+      const printDiv = document.createElement('div')
+      printDiv.style.position = 'absolute'
+      printDiv.style.left = '-9999px'
+      printDiv.style.top = '-9999px'
+      printDiv.style.width = '210mm'
+      printDiv.style.padding = '20mm'
+      printDiv.style.fontFamily = 'Arial, sans-serif'
+      printDiv.style.fontSize = '12px'
+      printDiv.style.lineHeight = '1.4'
+      printDiv.style.color = '#000'
+      printDiv.style.backgroundColor = '#fff'
       
-      <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
-        <div></div>
-        <div style="text-align: right;">
-          <div style="font-weight: bold;">Заказ № ${orderNumber}</div>
-          <div>Дата: ${new Date().toLocaleDateString('ru-RU')}</div>
+      // Add content to the div
+      printDiv.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 24px; font-weight: bold; margin: 0 0 10px 0; color: #1f2937;">ОПТИКА СОНАТА</h1>
+          <div style="font-size: 12px; color: #6b7280;">
+            <div>WhatsApp: +7 700 743 9775</div>
+            <div>Instagram: sonata.astana</div>
+          </div>
         </div>
-      </div>
-      
-      <div style="margin-bottom: 25px;">
-        <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">ИНФОРМАЦИЯ О КЛИЕНТЕ</h2>
-        <div style="font-size: 14px; line-height: 1.6;">
-          <div><strong>ФИО:</strong> ${customerName || 'Не указано'}</div>
-          <div><strong>Телефон:</strong> ${customerPhone || 'Не указано'}</div>
-          <div><strong>Дата заказа:</strong> ${orderDate}</div>
-          ${readyDate ? `<div><strong>Готовность:</strong> ${readyDate}</div>` : ''}
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
+          <div></div>
+          <div style="text-align: right;">
+            <div style="font-weight: bold;">Заказ № ${orderNumber}</div>
+            <div>Дата: ${new Date().toLocaleDateString('ru-RU')}</div>
+          </div>
         </div>
-      </div>
-      
-      ${prescription.od_sph || prescription.os_sph ? `
-      <div style="margin-bottom: 25px;">
-        <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">РЕЦЕПТ</h2>
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-          <thead>
-            <tr style="background-color: #f3f4f6;">
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Глаз</th>
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Sph</th>
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Cyl</th>
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Ax</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center; font-weight: bold;">OD</td>
-              <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.od_sph || '-'}</td>
-              <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.od_cyl || '-'}</td>
-              <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.od_ax || '-'}</td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center; font-weight: bold;">OS</td>
-              <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.os_sph || '-'}</td>
-              <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.os_cyl || '-'}</td>
-              <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.os_ax || '-'}</td>
-            </tr>
-          </tbody>
-        </table>
-        <div style="margin-top: 10px; font-size: 14px;">
-          <span style="margin-right: 30px;"><strong>Pd:</strong> ${prescription.pd || '-'}</span>
-          <span><strong>Add:</strong> ${prescription.add || '-'}</span>
+        
+        <div style="margin-bottom: 25px;">
+          <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">ИНФОРМАЦИЯ О КЛИЕНТЕ</h2>
+          <div style="font-size: 14px; line-height: 1.6;">
+            <div><strong>ФИО:</strong> ${customerName || 'Не указано'}</div>
+            <div><strong>Телефон:</strong> ${customerPhone || 'Не указано'}</div>
+            <div><strong>Дата заказа:</strong> ${orderDate}</div>
+            ${readyDate ? `<div><strong>Готовность:</strong> ${readyDate}</div>` : ''}
+          </div>
         </div>
-      </div>
-      ` : ''}
-      
-      <div style="margin-bottom: 25px;">
-        <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">ТОВАРЫ</h2>
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-          <thead>
-            <tr style="background-color: #f3f4f6;">
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left;">№</th>
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left;">Наименование</th>
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Кол-во</th>
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">Цена</th>
-              <th style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">Итого</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${items.filter(item => item.name).map((item, index) => `
-              <tr>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${index + 1}</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px;">${item.name}</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${item.quantity}</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">${parseFloat(item.price || '0').toLocaleString()} ₸</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-weight: bold;">${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸</td>
+        
+        ${prescription.od_sph || prescription.os_sph ? `
+        <div style="margin-bottom: 25px;">
+          <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">РЕЦЕПТ</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Глаз</th>
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Sph</th>
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Cyl</th>
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Ax</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-      
-      <div style="margin-bottom: 30px;">
-        <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">
-          Общая сумма: ${total.toLocaleString()} ₸
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center; font-weight: bold;">OD</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.od_sph || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.od_cyl || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.od_ax || '-'}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center; font-weight: bold;">OS</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.os_sph || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.os_cyl || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${prescription.os_ax || '-'}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 10px; font-size: 14px;">
+            <span style="margin-right: 30px;"><strong>Pd:</strong> ${prescription.pd || '-'}</span>
+            <span><strong>Add:</strong> ${prescription.add || '-'}</span>
+          </div>
         </div>
-        ${parseFloat(paid || '0') > 0 ? `
-          <div style="font-size: 14px; margin-bottom: 5px;">
-            Оплачено: ${parseFloat(paid || '0').toLocaleString()} ₸
-          </div>
         ` : ''}
-        ${debt > 0 ? `
-          <div style="font-size: 14px; color: #dc2626; font-weight: bold;">
-            Долг: ${debt.toLocaleString()} ₸
+        
+        <div style="margin-bottom: 25px;">
+          <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">ТОВАРЫ</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left;">№</th>
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left;">Наименование</th>
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Кол-во</th>
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">Цена</th>
+                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">Итого</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.filter(item => item.name).map((item, index) => `
+                <tr>
+                  <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${index + 1}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 8px;">${item.name}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${item.quantity}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">${parseFloat(item.price || '0').toLocaleString()} ₸</td>
+                  <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-weight: bold;">${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+          <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">
+            Общая сумма: ${total.toLocaleString()} ₸
           </div>
-        ` : ''}
-      </div>
+          ${parseFloat(paid || '0') > 0 ? `
+            <div style="font-size: 14px; margin-bottom: 5px;">
+              Оплачено: ${parseFloat(paid || '0').toLocaleString()} ₸
+            </div>
+          ` : ''}
+          ${debt > 0 ? `
+            <div style="font-size: 14px; color: #dc2626; font-weight: bold;">
+              Долг: ${debt.toLocaleString()} ₸
+            </div>
+          ` : ''}
+        </div>
+        
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #d1d5db; font-size: 12px; color: #6b7280; text-align: center;">
+          <div>Астана, Сыганак 32</div>
+          <div>WhatsApp: +7 700 743 9770 | Instagram: sonata.astana</div>
+        </div>
+      `
       
-      <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #d1d5db; font-size: 12px; color: #6b7280; text-align: center;">
-        <div>Астана, Сыганак 32</div>
-        <div>WhatsApp: +7 700 743 9770 | Instagram: sonata.astana</div>
-      </div>
-    `
-    
-    // Temporarily add to DOM
-    document.body.appendChild(printContent)
-    
-    // Use browser's print functionality
-    window.print()
-    
-    // Clean up
-    document.body.removeChild(printContent)
+      // Add to DOM
+      document.body.appendChild(printDiv)
+      
+      // Wait for content to render
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Capture the element as canvas
+      const canvas = await html2canvas(printDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      })
+      
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      
+      // Calculate dimensions to fit the content on one page
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      
+      // If content fits on one page, add it directly
+      if (imgHeight <= pageHeight) {
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight)
+      } else {
+        // Scale down to fit on one page
+        const scale = pageHeight / imgHeight
+        const scaledWidth = imgWidth * scale
+        const scaledHeight = pageHeight
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, scaledWidth, scaledHeight)
+      }
+      
+      // Download the PDF
+      pdf.save(`order-${orderNumber}.pdf`)
+      
+      // Clean up
+      document.body.removeChild(printDiv)
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Ошибка при создании PDF')
+    }
   }
 
   const handleWhatsApp = () => {
