@@ -534,12 +534,14 @@ export default function OrderHistory() {
         
         printWindow.document.close()
         
-        // Wait for content to load, then print
+        // Auto-download PDF without print dialog
         printWindow.onload = () => {
           setTimeout(() => {
             printWindow.print()
-            printWindow.close()
-          }, 500)
+            setTimeout(() => {
+              printWindow.close()
+            }, 1000)
+          }, 100)
         }
         
         // Clean up
