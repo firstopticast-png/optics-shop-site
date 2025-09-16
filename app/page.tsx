@@ -31,7 +31,7 @@ function MainApp() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center">
-                <Image src="/logo-new.png" alt="Оптика Соната" width={32} height={32} />
+                <Image src="/logo-round.png" alt="Оптика Соната" width={32} height={32} />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">ОПТИКА СОНАТА</h1>
