@@ -48,7 +48,6 @@ interface Client {
   id: string
   name: string
   phone: string
-  email: string
   address: string
   birthDate: string
   registrationDate: string
@@ -306,7 +305,6 @@ export default function OrderHistory() {
         id: Date.now().toString(),
         name: order.customerName,
         phone: order.customerPhone,
-        email: '',
         address: '',
         birthDate: '',
         registrationDate: order.orderDate,

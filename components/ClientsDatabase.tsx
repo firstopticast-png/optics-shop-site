@@ -8,14 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Search, Edit, Trash2, Eye, Phone, Mail, Calendar } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, Phone, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Client {
   id: string
   name: string
   phone: string
-  email: string
   address: string
   birthDate: string
   registrationDate: string
@@ -33,7 +32,6 @@ export default function ClientsDatabase() {
   const [formData, setFormData] = useState<Partial<Client>>({
     name: '',
     phone: '',
-    email: '',
     address: '',
     birthDate: '',
     notes: ''
@@ -51,7 +49,6 @@ export default function ClientsDatabase() {
           id: '1',
           name: 'Иван Петров',
           phone: '+7 (727) 123-45-67',
-          email: 'ivan.petrov@email.com',
           address: 'ул. Абая 150, Алматы',
           birthDate: '1985-03-15',
           registrationDate: '2024-01-15',
@@ -64,7 +61,6 @@ export default function ClientsDatabase() {
           id: '2',
           name: 'Мария Сидорова',
           phone: '+7 (727) 234-56-78',
-          email: 'maria.sidorova@email.com',
           address: 'пр. Достык 200, Алматы',
           birthDate: '1990-07-22',
           registrationDate: '2024-02-20',
@@ -77,7 +73,6 @@ export default function ClientsDatabase() {
           id: '3',
           name: 'Алексей Козлов',
           phone: '+7 (727) 345-67-89',
-          email: 'alexey.kozlov@email.com',
           address: 'ул. Сатпаева 75, Алматы',
           birthDate: '1978-11-08',
           registrationDate: '2024-03-10',
@@ -99,8 +94,7 @@ export default function ClientsDatabase() {
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    client.phone.includes(searchTerm)
   )
 
   const handleAddClient = () => {
@@ -108,7 +102,6 @@ export default function ClientsDatabase() {
     setFormData({
       name: '',
       phone: '',
-      email: '',
       address: '',
       birthDate: '',
       notes: ''
@@ -132,7 +125,6 @@ export default function ClientsDatabase() {
       id: editingClient?.id || Date.now().toString(),
       name: formData.name!,
       phone: formData.phone!,
-      email: formData.email || '',
       address: formData.address || '',
       birthDate: formData.birthDate || '',
       registrationDate: editingClient?.registrationDate || new Date().toISOString().split('T')[0],
@@ -190,7 +182,7 @@ export default function ClientsDatabase() {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Поиск по имени, телефону или email..."
+              placeholder="Поиск по имени или телефону..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -214,7 +206,6 @@ export default function ClientsDatabase() {
                 <TableRow>
                   <TableHead className="text-left">Имя</TableHead>
                   <TableHead className="text-left">Телефон</TableHead>
-                  <TableHead className="text-left">Email</TableHead>
                   <TableHead className="text-center">Заказов</TableHead>
                   <TableHead className="text-right">Потрачено</TableHead>
                   <TableHead className="text-center">Последний визит</TableHead>
@@ -229,12 +220,6 @@ export default function ClientsDatabase() {
                       <div className="flex items-center space-x-2">
                         <Phone className="w-4 h-4 text-gray-400" />
                         <span>{client.phone}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-left">
-                      <div className="flex items-center space-x-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                        <span>{client.email || 'Не указан'}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">{client.totalOrders}</TableCell>
@@ -296,16 +281,6 @@ export default function ClientsDatabase() {
                 value={formData.phone || ''}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 placeholder="+7 (727) 123-45-67"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email || ''}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="client@email.com"
               />
             </div>
             <div className="space-y-2">
