@@ -381,11 +381,11 @@ export default function OrderHistory() {
       
       // Add content to the div
       printDiv.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="/logo-new.png" alt="ОПТИКА СОНАТА" style="max-width: 200px; height: auto; margin-bottom: 10px; border: 2px solid #000;" />
+        <div style="text-align: center; margin-bottom: 30px;">
+          <img src="/logo-new.png" alt="ОПТИКА СОНАТА" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
         </div>
         
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
           <div></div>
           <div style="text-align: right;">
             <div style="font-weight: bold;">Заказ № ${order.orderNumber}</div>
@@ -393,7 +393,7 @@ export default function OrderHistory() {
           </div>
         </div>
         
-        <div style="margin-bottom: 20px;">
+        <div style="margin-bottom: 25px;">
           <div style="font-size: 14px; line-height: 1.6;">
             <div><strong>ФИО:</strong> ${order.customerName}</div>
             <div><strong>Телефон:</strong> ${order.customerPhone}</div>
