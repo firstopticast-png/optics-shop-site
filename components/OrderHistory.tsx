@@ -365,133 +365,191 @@ export default function OrderHistory() {
 
   const handlePrintOrder = (order: Order) => {
     try {
-      // Create new PDF document
-      const doc = new jsPDF()
+      // Create a temporary div for PDF generation
+      const printDiv = document.createElement('div')
+      printDiv.style.position = 'absolute'
+      printDiv.style.left = '-9999px'
+      printDiv.style.top = '-9999px'
+      printDiv.style.width = '210mm'
+      printDiv.style.padding = '10mm 15mm'
+      printDiv.style.fontFamily = 'Arial, sans-serif'
+      printDiv.style.fontSize = '10px'
+      printDiv.style.lineHeight = '1.2'
+      printDiv.style.color = '#000'
+      printDiv.style.backgroundColor = '#fff'
+      printDiv.style.pageBreakInside = 'avoid'
       
-      // Set font
-      doc.setFont('helvetica')
-      
-      // Add logo (we'll add text for now since we can't easily embed images in jsPDF)
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text('ОПТИКА СОНАТА', 105, 20, { align: 'center' })
-      
-      // Order number and date
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Заказ № ${order.orderNumber}`, 150, 30)
-      doc.text(`Дата: ${new Date(order.orderDate).toLocaleDateString('ru-RU')}`, 150, 35)
-      
-      // Customer information
-      doc.setFontSize(11)
-      doc.text(`ФИО: ${order.customerName}`, 20, 50)
-      doc.text(`Телефон: ${order.customerPhone}`, 20, 55)
-      doc.text(`Дата заказа: ${order.orderDate}`, 20, 60)
-      if (order.readyDate) {
-        doc.text(`Готовность: ${order.readyDate}`, 20, 65)
-      }
-      
-      let yPosition = order.readyDate ? 75 : 70
-      
-      // Prescription section
-      if (order.prescription.od_sph || order.prescription.os_sph) {
-        doc.setFontSize(12)
-        doc.setFont('helvetica', 'bold')
-        doc.text('РЕЦЕПТ', 20, yPosition)
-        yPosition += 10
+      // Add content to the div
+      printDiv.innerHTML = `
+        <div style="text-align: center; margin-bottom: 15px;">
+          <img src="/logo-round.png" alt="ОПТИКА СОНАТА" style="max-width: 150px; height: auto; margin-bottom: 5px;" />
+        </div>
         
-        // Prescription table headers
-        doc.setFontSize(10)
-        doc.setFont('helvetica', 'bold')
-        doc.text('Глаз', 20, yPosition)
-        doc.text('Sph', 50, yPosition)
-        doc.text('Cyl', 80, yPosition)
-        doc.text('Ax', 110, yPosition)
-        yPosition += 8
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 11px;">
+          <div></div>
+          <div style="text-align: right;">
+            <div style="font-weight: bold;">Заказ № ${order.orderNumber}</div>
+            <div>Дата: ${new Date(order.orderDate).toLocaleDateString('ru-RU')}</div>
+          </div>
+        </div>
         
-        // Prescription data
-        doc.setFont('helvetica', 'normal')
-        doc.text('OD', 20, yPosition)
-        doc.text(order.prescription.od_sph || '-', 50, yPosition)
-        doc.text(order.prescription.od_cyl || '-', 80, yPosition)
-        doc.text(order.prescription.od_ax || '-', 110, yPosition)
-        yPosition += 8
+        <div style="margin-bottom: 15px;">
+          <div style="font-size: 11px; line-height: 1.3;">
+            <div><strong>ФИО:</strong> ${order.customerName}</div>
+            <div><strong>Телефон:</strong> ${order.customerPhone}</div>
+            <div><strong>Дата заказа:</strong> ${order.orderDate}</div>
+            ${order.readyDate ? `<div><strong>Готовность:</strong> ${order.readyDate}</div>` : ''}
+          </div>
+        </div>
         
-        doc.text('OS', 20, yPosition)
-        doc.text(order.prescription.os_sph || '-', 50, yPosition)
-        doc.text(order.prescription.os_cyl || '-', 80, yPosition)
-        doc.text(order.prescription.os_ax || '-', 110, yPosition)
-        yPosition += 8
+        ${order.prescription.od_sph || order.prescription.os_sph ? `
+        <div style="margin-bottom: 15px;">
+          <h2 style="font-size: 12px; font-weight: bold; margin: 0 0 8px 0; color: #1f2937;">РЕЦЕПТ</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Глаз</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Sph</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Cyl</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Ax</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center; font-weight: bold;">OD</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.od_sph || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.od_cyl || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.od_ax || '-'}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center; font-weight: bold;">OS</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.os_sph || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.os_cyl || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.os_ax || '-'}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 5px; font-size: 10px;">
+            <span style="margin-right: 20px;"><strong>Pd:</strong> ${order.prescription.pd || '-'}</span>
+            <span><strong>Add:</strong> ${order.prescription.add || '-'}</span>
+          </div>
+        </div>
+        ` : ''}
         
-        // PD and Add
-        doc.text(`Pd: ${order.prescription.pd || '-'}`, 20, yPosition)
-        doc.text(`Add: ${order.prescription.add || '-'}`, 80, yPosition)
-        yPosition += 15
-      }
+        <div style="margin-bottom: 15px;">
+          <h2 style="font-size: 12px; font-weight: bold; margin: 0 0 8px 0; color: #1f2937;">ТОВАРЫ</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: left;">№</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: left;">Наименование</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Кол-во</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">Цена</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">Итого</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items.filter(item => item.name).map((item, index) => `
+                <tr>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${index + 1}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px;">${item.name}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${item.quantity}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">${parseFloat(item.price || '0').toLocaleString()} ₸</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: right; font-weight: bold;">${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">
+            Общая сумма: ${order.total.toLocaleString()} ₸
+          </div>
+          ${order.paid > 0 ? `
+            <div style="font-size: 10px; margin-bottom: 3px;">
+              Оплачено: ${order.paid.toLocaleString()} ₸
+            </div>
+          ` : ''}
+          ${order.debt > 0 ? `
+            <div style="font-size: 10px; color: #dc2626; font-weight: bold;">
+              Долг: ${order.debt.toLocaleString()} ₸
+            </div>
+          ` : ''}
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #d1d5db; font-size: 9px; color: #6b7280; text-align: center;">
+          <div>Астана, Сыганак 32</div>
+          <div>WhatsApp: +7 700 743 9770 | Instagram: sonata.astana</div>
+        </div>
+      `
       
-      // Items section
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text('ТОВАРЫ', 20, yPosition)
-      yPosition += 10
+      // Add to DOM
+      document.body.appendChild(printDiv)
       
-      // Items table headers
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'bold')
-      doc.text('№', 20, yPosition)
-      doc.text('Наименование', 30, yPosition)
-      doc.text('Кол-во', 120, yPosition)
-      doc.text('Цена', 140, yPosition)
-      doc.text('Итого', 170, yPosition)
-      yPosition += 8
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank', 'width=800,height=600')
       
-      // Items data
-      doc.setFont('helvetica', 'normal')
-      order.items.filter(item => item.name).forEach((item, index) => {
-        if (yPosition > 250) {
-          doc.addPage()
-          yPosition = 20
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Заказ ${order.orderNumber}</title>
+              <style>
+                @media print {
+                  @page {
+                    size: A4;
+                    margin: 10mm 15mm;
+                  }
+                  body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: Arial, sans-serif;
+                    font-size: 10px;
+                    line-height: 1.2;
+                  }
+                  * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                  }
+                  .print-content {
+                    page-break-inside: avoid;
+                    max-height: 100vh;
+                    overflow: hidden;
+                  }
+                }
+                body {
+                  font-family: Arial, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                }
+              </style>
+            </head>
+            <body>
+              ${printDiv.innerHTML}
+            </body>
+          </html>
+        `)
+        
+        printWindow.document.close()
+        
+        // Show print dialog
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print()
+          }, 100)
         }
         
-        doc.text(`${index + 1}`, 20, yPosition)
-        doc.text(item.name, 30, yPosition)
-        doc.text(item.quantity, 120, yPosition)
-        doc.text(`${parseFloat(item.price || '0').toLocaleString()} ₸`, 140, yPosition)
-        doc.text(`${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸`, 170, yPosition)
-        yPosition += 8
-      })
-      
-      yPosition += 10
-      
-      // Total section
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`Общая сумма: ${order.total.toLocaleString()} ₸`, 20, yPosition)
-      yPosition += 8
-      
-      if (order.paid > 0) {
-        doc.setFontSize(10)
-        doc.setFont('helvetica', 'normal')
-        doc.text(`Оплачено: ${order.paid.toLocaleString()} ₸`, 20, yPosition)
-        yPosition += 8
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(printDiv)
+        }, 1000)
+      } else {
+        // Fallback to regular print if popup blocked
+        window.print()
+        document.body.removeChild(printDiv)
       }
-      
-      if (order.debt > 0) {
-        doc.setFontSize(10)
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(220, 38, 38) // Red color for debt
-        doc.text(`Долг: ${order.debt.toLocaleString()} ₸`, 20, yPosition)
-        doc.setTextColor(0, 0, 0) // Reset to black
-      }
-      
-      // Footer
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'normal')
-      doc.text('Астана, Сыганак 32', 105, 280, { align: 'center' })
-      doc.text('WhatsApp: +7 700 743 9770 | Instagram: sonata.astana', 105, 285, { align: 'center' })
-      
-      // Save the PDF
-      doc.save(`Заказ_${order.orderNumber}_${new Date(order.orderDate).toLocaleDateString('ru-RU').replace(/\./g, '-')}.pdf`)
       
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -645,8 +703,8 @@ export default function OrderHistory() {
             doc.text('Астана, Сыганак 32', 105, 280, { align: 'center' })
             doc.text('WhatsApp: +7 700 743 9770 | Instagram: sonata.astana', 105, 285, { align: 'center' })
             
-            // Save the PDF
-            doc.save(`Заказ_${order.orderNumber}_${new Date(order.orderDate).toLocaleDateString('ru-RU').replace(/\./g, '-')}.pdf`)
+            // Show print dialog instead of saving PDF
+            printWindow.print()
       
       // Wait a moment for PDF to download, then open WhatsApp
       setTimeout(() => {
