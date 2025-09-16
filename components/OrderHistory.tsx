@@ -382,11 +382,7 @@ export default function OrderHistory() {
       // Add content to the div
       printDiv.innerHTML = `
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="font-size: 24px; font-weight: bold; margin: 0 0 10px 0; color: #1f2937;">ОПТИКА СОНАТА</h1>
-          <div style="font-size: 12px; color: #6b7280;">
-            <div>WhatsApp: +7 700 743 9775</div>
-            <div>Instagram: sonata.astana</div>
-          </div>
+          <img src="/logo-new.png" alt="ОПТИКА СОНАТА" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
         </div>
         
         <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
