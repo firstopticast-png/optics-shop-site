@@ -276,7 +276,6 @@ export default function OrderForm() {
         </div>
         
         <div style="margin-bottom: 25px;">
-          <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">ИНФОРМАЦИЯ О КЛИЕНТЕ</h2>
           <div style="font-size: 14px; line-height: 1.6;">
             <div><strong>ФИО:</strong> ${customerName || 'Не указано'}</div>
             <div><strong>Телефон:</strong> ${customerPhone || 'Не указано'}</div>
