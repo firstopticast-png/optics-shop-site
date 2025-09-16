@@ -31,7 +31,6 @@ interface Client {
   id: string
   name: string
   phone: string
-  address: string
   birthDate: string
   registrationDate: string
   totalOrders: number
@@ -205,7 +204,6 @@ export default function OrderForm() {
         id: Date.now().toString(),
         name: customerName,
         phone: customerPhone,
-        address: '',
         birthDate: '',
         registrationDate: orderDate,
         totalOrders: 1,

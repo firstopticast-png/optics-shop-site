@@ -15,7 +15,6 @@ interface Client {
   id: string
   name: string
   phone: string
-  address: string
   birthDate: string
   registrationDate: string
   totalOrders: number
@@ -35,7 +34,6 @@ export default function ClientsDatabase() {
   const [formData, setFormData] = useState<Partial<Client>>({
     name: '',
     phone: '',
-    address: '',
     birthDate: '',
     notes: ''
   })
@@ -52,7 +50,6 @@ export default function ClientsDatabase() {
           id: '1',
           name: 'Иван Петров',
           phone: '+7 (727) 123-45-67',
-          address: 'ул. Абая 150, Алматы',
           birthDate: '1985-03-15',
           registrationDate: '2024-01-15',
           totalOrders: 3,
@@ -64,7 +61,6 @@ export default function ClientsDatabase() {
           id: '2',
           name: 'Мария Сидорова',
           phone: '+7 (727) 234-56-78',
-          address: 'пр. Достык 200, Алматы',
           birthDate: '1990-07-22',
           registrationDate: '2024-02-20',
           totalOrders: 2,
@@ -76,7 +72,6 @@ export default function ClientsDatabase() {
           id: '3',
           name: 'Алексей Козлов',
           phone: '+7 (727) 345-67-89',
-          address: 'ул. Сатпаева 75, Алматы',
           birthDate: '1978-11-08',
           registrationDate: '2024-03-10',
           totalOrders: 5,
@@ -105,7 +100,6 @@ export default function ClientsDatabase() {
     setFormData({
       name: '',
       phone: '',
-      address: '',
       birthDate: '',
       notes: ''
     })
@@ -128,7 +122,6 @@ export default function ClientsDatabase() {
       id: editingClient?.id || Date.now().toString(),
       name: formData.name!,
       phone: formData.phone!,
-      address: formData.address || '',
       birthDate: formData.birthDate || '',
       registrationDate: editingClient?.registrationDate || new Date().toISOString().split('T')[0],
       totalOrders: editingClient?.totalOrders || 0,
@@ -327,21 +320,12 @@ export default function ClientsDatabase() {
               />
             </div>
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="address">Адрес</Label>
-              <Input
-                id="address"
-                value={formData.address || ''}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
-                placeholder="Введите адрес клиента"
-              />
-            </div>
-            <div className="col-span-2 space-y-2">
               <Label htmlFor="notes">Заметки</Label>
               <Input
                 id="notes"
                 value={formData.notes || ''}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                placeholder="Дополнительная информация о клиенте"
+                placeholder="Дополнительная информация о заказе"
               />
             </div>
           </div>
