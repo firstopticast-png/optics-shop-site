@@ -30,6 +30,7 @@ export default function ClientsDatabase() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [secondDeleteConfirmOpen, setSecondDeleteConfirmOpen] = useState(false)
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
   const [formData, setFormData] = useState<Partial<Client>>({
     name: '',
@@ -153,16 +154,27 @@ export default function ClientsDatabase() {
   }
 
   const confirmDeleteClient = () => {
+    // Close first dialog and open second confirmation
+    setDeleteConfirmOpen(false)
+    setSecondDeleteConfirmOpen(true)
+  }
+
+  const confirmSecondDeleteClient = () => {
     if (clientToDelete) {
       setClients(clients.filter(c => c.id !== clientToDelete.id))
       toast.success('Клиент удален')
-      setDeleteConfirmOpen(false)
+      setSecondDeleteConfirmOpen(false)
       setClientToDelete(null)
     }
   }
 
   const cancelDeleteClient = () => {
     setDeleteConfirmOpen(false)
+    setClientToDelete(null)
+  }
+
+  const cancelSecondDeleteClient = () => {
+    setSecondDeleteConfirmOpen(false)
     setClientToDelete(null)
   }
 
@@ -374,6 +386,45 @@ export default function ClientsDatabase() {
               </Button>
               <Button variant="destructive" onClick={confirmDeleteClient}>
                 Да, удалить
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Second Delete Confirmation Dialog */}
+      <Dialog open={secondDeleteConfirmOpen} onOpenChange={setSecondDeleteConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Окончательное подтверждение</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-gray-900 mb-2">
+                Вы действительно хотите удалить этого клиента?
+              </div>
+              {clientToDelete && (
+                <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                  <div className="font-medium text-red-800">{clientToDelete.name}</div>
+                  <div className="text-sm text-red-600">{clientToDelete.phone}</div>
+                  <div className="text-sm text-red-500 mt-1">
+                    Заказов: {clientToDelete.totalOrders} | Потрачено: {formatCurrency(clientToDelete.totalSpent)}
+                  </div>
+                </div>
+              )}
+              <div className="text-sm text-red-600 mt-3 font-semibold">
+                ⚠️ Это действие НЕОБРАТИМО!
+              </div>
+              <div className="text-xs text-gray-500 mt-2">
+                Все данные о клиенте будут безвозвратно удалены
+              </div>
+            </div>
+            <div className="flex justify-center space-x-3">
+              <Button variant="outline" onClick={cancelSecondDeleteClient}>
+                Отмена
+              </Button>
+              <Button variant="destructive" onClick={confirmSecondDeleteClient}>
+                Да, удалить навсегда
               </Button>
             </div>
           </div>
