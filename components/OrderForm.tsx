@@ -249,7 +249,7 @@ export default function OrderForm() {
       printDiv.style.left = '-9999px'
       printDiv.style.top = '-9999px'
       printDiv.style.width = '210mm'
-      printDiv.style.padding = '20mm'
+      printDiv.style.padding = '25mm 30mm'
       printDiv.style.fontFamily = 'Arial, sans-serif'
       printDiv.style.fontSize = '12px'
       printDiv.style.lineHeight = '1.4'
@@ -383,7 +383,7 @@ export default function OrderForm() {
                 @media print {
                   @page {
                     size: A4;
-                    margin: 0;
+                    margin: 25mm 30mm;
                   }
                   body {
                     margin: 0;
