@@ -371,21 +371,21 @@ export default function OrderHistory() {
       printDiv.style.left = '-9999px'
       printDiv.style.top = '-9999px'
       printDiv.style.width = '210mm'
-      printDiv.style.padding = '25mm 30mm'
+      printDiv.style.padding = '10mm 15mm'
       printDiv.style.fontFamily = 'Arial, sans-serif'
-      printDiv.style.fontSize = '12px'
-      printDiv.style.lineHeight = '1.4'
+      printDiv.style.fontSize = '10px'
+      printDiv.style.lineHeight = '1.2'
       printDiv.style.color = '#000'
       printDiv.style.backgroundColor = '#fff'
       printDiv.style.pageBreakInside = 'avoid'
       
       // Add content to the div
       printDiv.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px;">
-          <img src="/logo-round.png" alt="ОПТИКА СОНАТА" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
+        <div style="text-align: center; margin-bottom: 15px;">
+          <img src="/logo-round.png" alt="ОПТИКА СОНАТА" style="max-width: 150px; height: auto; margin-bottom: 5px;" />
         </div>
         
-        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 11px;">
           <div></div>
           <div style="text-align: right;">
             <div style="font-weight: bold;">Заказ № ${order.orderNumber}</div>
@@ -393,8 +393,8 @@ export default function OrderHistory() {
           </div>
         </div>
         
-        <div style="margin-bottom: 25px;">
-          <div style="font-size: 14px; line-height: 1.6;">
+        <div style="margin-bottom: 15px;">
+          <div style="font-size: 11px; line-height: 1.3;">
             <div><strong>ФИО:</strong> ${order.customerName}</div>
             <div><strong>Телефон:</strong> ${order.customerPhone}</div>
             <div><strong>Дата заказа:</strong> ${order.orderDate}</div>
@@ -403,82 +403,82 @@ export default function OrderHistory() {
         </div>
         
         ${order.prescription.od_sph || order.prescription.os_sph ? `
-        <div style="margin-bottom: 25px;">
-          <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">РЕЦЕПТ</h2>
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <div style="margin-bottom: 15px;">
+          <h2 style="font-size: 12px; font-weight: bold; margin: 0 0 8px 0; color: #1f2937;">РЕЦЕПТ</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
             <thead>
               <tr style="background-color: #f3f4f6;">
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Глаз</th>
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Sph</th>
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Cyl</th>
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Ax</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Глаз</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Sph</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Cyl</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Ax</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center; font-weight: bold;">OD</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${order.prescription.od_sph || '-'}</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${order.prescription.od_cyl || '-'}</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${order.prescription.od_ax || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center; font-weight: bold;">OD</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.od_sph || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.od_cyl || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.od_ax || '-'}</td>
               </tr>
               <tr>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center; font-weight: bold;">OS</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${order.prescription.os_sph || '-'}</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${order.prescription.os_cyl || '-'}</td>
-                <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${order.prescription.os_ax || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center; font-weight: bold;">OS</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.os_sph || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.os_cyl || '-'}</td>
+                <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${order.prescription.os_ax || '-'}</td>
               </tr>
             </tbody>
           </table>
-          <div style="margin-top: 10px; font-size: 14px;">
-            <span style="margin-right: 30px;"><strong>Pd:</strong> ${order.prescription.pd || '-'}</span>
+          <div style="margin-top: 5px; font-size: 10px;">
+            <span style="margin-right: 20px;"><strong>Pd:</strong> ${order.prescription.pd || '-'}</span>
             <span><strong>Add:</strong> ${order.prescription.add || '-'}</span>
           </div>
         </div>
         ` : ''}
         
-        <div style="margin-bottom: 25px;">
-          <h2 style="font-size: 16px; font-weight: bold; margin: 0 0 15px 0; color: #1f2937;">ТОВАРЫ</h2>
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <div style="margin-bottom: 15px;">
+          <h2 style="font-size: 12px; font-weight: bold; margin: 0 0 8px 0; color: #1f2937;">ТОВАРЫ</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
             <thead>
               <tr style="background-color: #f3f4f6;">
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left;">№</th>
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left;">Наименование</th>
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Кол-во</th>
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">Цена</th>
-                <th style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">Итого</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: left;">№</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: left;">Наименование</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">Кол-во</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">Цена</th>
+                <th style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">Итого</th>
               </tr>
             </thead>
             <tbody>
               ${order.items.filter(item => item.name).map((item, index) => `
                 <tr>
-                  <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${index + 1}</td>
-                  <td style="border: 1px solid #d1d5db; padding: 8px;">${item.name}</td>
-                  <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${item.quantity}</td>
-                  <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right;">${parseFloat(item.price || '0').toLocaleString()} ₸</td>
-                  <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-weight: bold;">${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${index + 1}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px;">${item.name}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: center;">${item.quantity}</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: right;">${parseFloat(item.price || '0').toLocaleString()} ₸</td>
+                  <td style="border: 1px solid #d1d5db; padding: 4px; text-align: right; font-weight: bold;">${(parseFloat(item.price || '0') * parseFloat(item.quantity || '0')).toLocaleString()} ₸</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </div>
         
-        <div style="margin-bottom: 30px;">
-          <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">
+        <div style="margin-bottom: 15px;">
+          <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">
             Общая сумма: ${order.total.toLocaleString()} ₸
           </div>
           ${order.paid > 0 ? `
-            <div style="font-size: 14px; margin-bottom: 5px;">
+            <div style="font-size: 10px; margin-bottom: 3px;">
               Оплачено: ${order.paid.toLocaleString()} ₸
             </div>
           ` : ''}
           ${order.debt > 0 ? `
-            <div style="font-size: 14px; color: #dc2626; font-weight: bold;">
+            <div style="font-size: 10px; color: #dc2626; font-weight: bold;">
               Долг: ${order.debt.toLocaleString()} ₸
             </div>
           ` : ''}
         </div>
         
-        <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #d1d5db; font-size: 12px; color: #6b7280; text-align: center;">
+        <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #d1d5db; font-size: 9px; color: #6b7280; text-align: center;">
           <div>Астана, Сыганак 32</div>
           <div>WhatsApp: +7 700 743 9770 | Instagram: sonata.astana</div>
         </div>
@@ -500,16 +500,23 @@ export default function OrderHistory() {
                 @media print {
                   @page {
                     size: A4;
-                    margin: 25mm 30mm;
+                    margin: 10mm 15mm;
                   }
                   body {
                     margin: 0;
                     padding: 0;
                     font-family: Arial, sans-serif;
+                    font-size: 10px;
+                    line-height: 1.2;
                   }
                   * {
                     -webkit-print-color-adjust: exact !important;
                     color-adjust: exact !important;
+                  }
+                  .print-content {
+                    page-break-inside: avoid;
+                    max-height: 100vh;
+                    overflow: hidden;
                   }
                 }
                 body {
