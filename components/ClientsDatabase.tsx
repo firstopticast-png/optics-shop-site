@@ -29,6 +29,8 @@ export default function ClientsDatabase() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
   const [formData, setFormData] = useState<Partial<Client>>({
     name: '',
     phone: '',
@@ -145,9 +147,23 @@ export default function ClientsDatabase() {
     setIsDialogOpen(false)
   }
 
-  const handleDeleteClient = (clientId: string) => {
-    setClients(clients.filter(c => c.id !== clientId))
-    toast.success('Клиент удален')
+  const handleDeleteClient = (client: Client) => {
+    setClientToDelete(client)
+    setDeleteConfirmOpen(true)
+  }
+
+  const confirmDeleteClient = () => {
+    if (clientToDelete) {
+      setClients(clients.filter(c => c.id !== clientToDelete.id))
+      toast.success('Клиент удален')
+      setDeleteConfirmOpen(false)
+      setClientToDelete(null)
+    }
+  }
+
+  const cancelDeleteClient = () => {
+    setDeleteConfirmOpen(false)
+    setClientToDelete(null)
   }
 
   const formatCurrency = (amount: number) => {
@@ -207,8 +223,9 @@ export default function ClientsDatabase() {
                   <TableHead className="text-left">Имя</TableHead>
                   <TableHead className="text-left">Телефон</TableHead>
                   <TableHead className="text-center">Заказов</TableHead>
-                  <TableHead className="text-right">Потрачено</TableHead>
+                  <TableHead className="text-right">Общая сумма заказов</TableHead>
                   <TableHead className="text-center">Последний визит</TableHead>
+                  <TableHead className="text-left">Заметки</TableHead>
                   <TableHead className="text-center">Действия</TableHead>
                 </TableRow>
               </TableHeader>
@@ -230,6 +247,11 @@ export default function ClientsDatabase() {
                         <span>{formatDate(client.lastVisit)}</span>
                       </div>
                     </TableCell>
+                    <TableCell className="text-left max-w-xs">
+                      <div className="truncate" title={client.notes}>
+                        {client.notes || '-'}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center space-x-2">
                         <Button
@@ -242,7 +264,7 @@ export default function ClientsDatabase() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteClient(client.id)}
+                          onClick={() => handleDeleteClient(client)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -318,6 +340,42 @@ export default function ClientsDatabase() {
             <Button onClick={handleSaveClient}>
               {editingClient ? 'Обновить' : 'Добавить'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Подтверждение удаления</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-gray-900 mb-2">
+                Вы уверены, что хотите удалить клиента?
+              </div>
+              {clientToDelete && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="font-medium">{clientToDelete.name}</div>
+                  <div className="text-sm text-gray-600">{clientToDelete.phone}</div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Заказов: {clientToDelete.totalOrders} | Потрачено: {formatCurrency(clientToDelete.totalSpent)}
+                  </div>
+                </div>
+              )}
+              <div className="text-sm text-red-600 mt-3">
+                ⚠️ Это действие нельзя отменить!
+              </div>
+            </div>
+            <div className="flex justify-center space-x-3">
+              <Button variant="outline" onClick={cancelDeleteClient}>
+                Отмена
+              </Button>
+              <Button variant="destructive" onClick={confirmDeleteClient}>
+                Да, удалить
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
