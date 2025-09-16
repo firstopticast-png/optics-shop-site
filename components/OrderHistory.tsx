@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Search, Eye, EyeOff, Calendar, User, Phone, DollarSign, Save, Printer, MessageCircle, Edit, Plus, Trash2 } from 'lucide-react'
 import jsPDF from 'jspdf'
 
@@ -43,11 +44,34 @@ interface Order {
   status: string
 }
 
+interface Client {
+  id: string
+  name: string
+  phone: string
+  email: string
+  address: string
+  birthDate: string
+  registrationDate: string
+  totalOrders: number
+  totalSpent: number
+  lastVisit: string
+  notes: string
+}
+
 export default function OrderHistory() {
   const [orders, setOrders] = useState<Order[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
+  
+  // Client validation states
+  const [clients, setClients] = useState<Client[]>([])
+  const [showClientDialog, setShowClientDialog] = useState(false)
+  const [clientValidationData, setClientValidationData] = useState<{
+    order: Order | null
+    existingClient: Client | null
+    isMismatch: boolean
+  } | null>(null)
 
   // Load orders from localStorage on component mount
   useEffect(() => {
@@ -127,6 +151,14 @@ export default function OrderHistory() {
       ]
       setOrders(sampleOrders)
       localStorage.setItem('optics-sonata-orders', JSON.stringify(sampleOrders))
+    }
+  }, [])
+
+  // Load clients from localStorage
+  useEffect(() => {
+    const savedClients = localStorage.getItem('optics-sonata-clients')
+    if (savedClients) {
+      setClients(JSON.parse(savedClients))
     }
   }, [])
 
@@ -213,6 +245,105 @@ export default function OrderHistory() {
     })
   }
 
+  // Client validation functions
+  const validateClientData = (order: Order) => {
+    const existingClient = clients.find(client => 
+      client.name.toLowerCase() === order.customerName.toLowerCase() || 
+      client.phone === order.customerPhone
+    )
+    
+    if (!existingClient) {
+      // Client doesn't exist
+      return { existingClient: null, isMismatch: false }
+    }
+    
+    // Check if data matches
+    const isMismatch = existingClient.name.toLowerCase() !== order.customerName.toLowerCase() ||
+                      existingClient.phone !== order.customerPhone
+    
+    return { existingClient, isMismatch }
+  }
+
+  const handleClientValidation = (order: Order) => {
+    const validation = validateClientData(order)
+    
+    if (!validation.existingClient || validation.isMismatch) {
+      // Show warning dialog
+      setClientValidationData({
+        order,
+        existingClient: validation.existingClient,
+        isMismatch: validation.isMismatch
+      })
+      setShowClientDialog(true)
+      return false
+    }
+    
+    return true
+  }
+
+  const handleCreateOrUpdateClient = () => {
+    if (!clientValidationData?.order) return
+    
+    const { order, existingClient } = clientValidationData
+    
+    if (existingClient) {
+      // Update existing client
+      const updatedClient = {
+        ...existingClient,
+        name: order.customerName,
+        phone: order.customerPhone,
+        lastVisit: order.orderDate
+      }
+      
+      const updatedClients = clients.map(client => 
+        client.id === existingClient.id ? updatedClient : client
+      )
+      setClients(updatedClients)
+      localStorage.setItem('optics-sonata-clients', JSON.stringify(updatedClients))
+    } else {
+      // Create new client
+      const newClient: Client = {
+        id: Date.now().toString(),
+        name: order.customerName,
+        phone: order.customerPhone,
+        email: '',
+        address: '',
+        birthDate: '',
+        registrationDate: order.orderDate,
+        totalOrders: 1,
+        totalSpent: order.total,
+        lastVisit: order.orderDate,
+        notes: ''
+      }
+      
+      const updatedClients = [...clients, newClient]
+      setClients(updatedClients)
+      localStorage.setItem('optics-sonata-clients', JSON.stringify(updatedClients))
+    }
+    
+    // Close dialog and proceed with order save
+    setShowClientDialog(false)
+    setClientValidationData(null)
+    proceedWithOrderSave()
+  }
+
+  const proceedWithOrderSave = () => {
+    if (!editingOrder) return
+    
+    // Update the order in the orders array
+    const updatedOrders = orders.map(o => o.id === editingOrder.id ? editingOrder : o)
+    setOrders(updatedOrders)
+    
+    // Save to localStorage
+    localStorage.setItem('optics-sonata-orders', JSON.stringify(updatedOrders))
+    
+    // Show success message
+    alert('Заказ обновлен!')
+    
+    // Exit edit mode
+    setEditingOrder(null)
+  }
+
   const handleSaveOrder = () => {
     if (!editingOrder) return
     
@@ -227,18 +358,13 @@ export default function OrderHistory() {
       return
     }
     
-    // Update the order in the orders array
-    const updatedOrders = orders.map(o => o.id === editingOrder.id ? editingOrder : o)
-    setOrders(updatedOrders)
+    // Check client data validation
+    if (!handleClientValidation(editingOrder)) {
+      return // Dialog will handle the rest
+    }
     
-    // Save to localStorage
-    localStorage.setItem('optics-sonata-orders', JSON.stringify(updatedOrders))
-    
-    // Show success message
-    alert(`Заказ №${editingOrder.orderNumber} успешно обновлен!`)
-    
-    // Exit edit mode
-    setEditingOrder(null)
+    // Proceed with order save if validation passes
+    proceedWithOrderSave()
   }
 
   const handlePrintOrder = (order: Order) => {
@@ -877,6 +1003,68 @@ export default function OrderHistory() {
           ))
         )}
       </div>
+
+      {/* Client Validation Dialog */}
+      <Dialog open={showClientDialog} onOpenChange={setShowClientDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Проверка данных клиента</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {clientValidationData?.isMismatch ? (
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  Данные клиента в заказе не совпадают с базой клиентов:
+                </p>
+                <div className="bg-yellow-50 p-3 rounded-md">
+                  <p className="text-sm font-medium">В заказе:</p>
+                  <p className="text-sm">Имя: {clientValidationData.order?.customerName}</p>
+                  <p className="text-sm">Телефон: {clientValidationData.order?.customerPhone}</p>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-md mt-2">
+                  <p className="text-sm font-medium">В базе клиентов:</p>
+                  <p className="text-sm">Имя: {clientValidationData.existingClient?.name}</p>
+                  <p className="text-sm">Телефон: {clientValidationData.existingClient?.phone}</p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  Клиент с такими данными не найден в базе клиентов:
+                </p>
+                <div className="bg-yellow-50 p-3 rounded-md">
+                  <p className="text-sm">Имя: {clientValidationData?.order?.customerName}</p>
+                  <p className="text-sm">Телефон: {clientValidationData?.order?.customerPhone}</p>
+                </div>
+              </div>
+            )}
+            
+            <p className="text-sm font-medium">
+              Создать/Редактировать данные о клиенте?
+            </p>
+            
+            <div className="flex space-x-3">
+              <Button 
+                onClick={handleCreateOrUpdateClient}
+                className="flex-1"
+              >
+                Да
+              </Button>
+              <Button 
+                onClick={() => {
+                  setShowClientDialog(false)
+                  setClientValidationData(null)
+                  proceedWithOrderSave()
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Нет
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
