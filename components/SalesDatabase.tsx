@@ -64,16 +64,23 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
     
     orders.forEach(order => {
       order.items.forEach(item => {
+        const quantity = parseFloat(item.quantity) || 0
+        const pricePerUnit = parseFloat(item.price) || 0
+        const salesAmount = quantity * pricePerUnit
+        const costPerUnit = 0 // Default cost per unit, editable by user
+        const totalCost = quantity * costPerUnit
+        const profit = salesAmount - totalCost
+
         salesItems.push({
           id: `${order.id}-${item.id}`,
           date: order.orderDate,
           name: item.name,
-          quantity: parseFloat(item.quantity) || 0,
-          pricePerUnit: parseFloat(item.price) || 0,
-          salesAmount: (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0),
-          costPerUnit: 0, // Will be editable in the future
-          totalCost: 0, // Will be calculated based on costPerUnit
-          profit: (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0) // For now, profit = sales amount
+          quantity,
+          pricePerUnit,
+          salesAmount,
+          costPerUnit,
+          totalCost,
+          profit
         })
       })
     })
@@ -124,6 +131,26 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
   // Save sales data to localStorage
   const saveSalesData = (data: SalesItem[]) => {
     localStorage.setItem('salesData', JSON.stringify(data))
+  }
+
+  // Handle cost per unit change
+  const handleCostPerUnitChange = (id: string, costPerUnit: number) => {
+    const updatedItems = salesItems.map(item => {
+      if (item.id === id) {
+        const totalCost = item.quantity * costPerUnit
+        const profit = item.salesAmount - totalCost
+        return {
+          ...item,
+          costPerUnit,
+          totalCost,
+          profit
+        }
+      }
+      return item
+    })
+    
+    setSalesItems(updatedItems)
+    saveSalesData(updatedItems)
   }
 
   // Filter sales items by period
@@ -298,7 +325,17 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
                     <td className="p-3 text-sm text-right font-semibold text-orange-600">
                       {item.salesAmount.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="p-3 text-sm text-right">{item.costPerUnit.toFixed(2)}</td>
+                    <td className="p-3 text-sm text-right">
+                      <Input
+                        type="number"
+                        value={item.costPerUnit}
+                        onChange={(e) => handleCostPerUnitChange(item.id, parseFloat(e.target.value) || 0)}
+                        className="w-20 text-right text-sm border border-gray-300 rounded px-2 py-1 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                      />
+                    </td>
                     <td className="p-3 text-sm text-right">{item.totalCost.toFixed(2)}</td>
                     <td className="p-3 text-sm text-right font-semibold text-green-600">
                       {item.profit.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
