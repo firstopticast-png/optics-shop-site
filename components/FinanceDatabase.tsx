@@ -155,9 +155,19 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
       return
     }
 
+    // Check for duplicate names
+    const existingExpense = financeData.expenses.find(expense => 
+      expense.name.toLowerCase() === newExpenseName.trim().toLowerCase()
+    )
+    
+    if (existingExpense) {
+      alert(`Расход с названием "${newExpenseName.trim()}" уже существует. Пожалуйста, выберите другое название.`)
+      return
+    }
+
     const newExpense: ExpenseItem = {
       id: Date.now().toString(),
-      name: newExpenseName,
+      name: newExpenseName.trim(),
       amount: newExpenseAmount
     }
 
@@ -173,6 +183,9 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
     setFinanceData(updatedData)
     saveFinanceData(updatedData)
     
+    // Show success message
+    alert(`Расход "${newExpenseName.trim()}" успешно добавлен!`)
+    
     // Reset form
     setNewExpenseName('')
     setNewExpenseAmount(0)
@@ -181,7 +194,10 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
 
   // Handle deleting expense
   const handleDeleteExpense = (id: string) => {
-    if (confirm('Вы уверены, что хотите удалить этот расход?')) {
+    const expense = financeData.expenses.find(e => e.id === id)
+    const expenseName = expense?.name || 'этот расход'
+    
+    if (confirm(`Вы уверены, что хотите удалить "${expenseName}"?\n\nЭто действие нельзя отменить.`)) {
       const updatedExpenses = financeData.expenses.filter(expense => expense.id !== id)
       const calculatedValues = calculateDerivedValues(updatedExpenses)
       
@@ -193,6 +209,9 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
       
       setFinanceData(updatedData)
       saveFinanceData(updatedData)
+      
+      // Show success message
+      alert(`Расход "${expenseName}" успешно удален!`)
     }
   }
 
@@ -282,24 +301,55 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
           <CardContent className="space-y-4">
             <div className="space-y-3">
               {financeData.expenses.map((expense) => (
-                <div key={expense.id} className="flex justify-between items-center group">
+                <div key={expense.id} className="flex justify-between items-center group p-2 rounded-lg hover:bg-gray-50 transition-colors">
                   <div className="flex-1">
                     {editingExpense?.id === expense.id ? (
-                      <Input
-                        value={editingExpense.name}
-                        onChange={(e) => setEditingExpense({ ...editingExpense, name: e.target.value })}
-                        className="text-sm"
-                        onBlur={handleSaveExpense}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSaveExpense()}
-                        autoFocus
-                      />
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          value={editingExpense.name}
+                          onChange={(e) => setEditingExpense({ ...editingExpense, name: e.target.value })}
+                          className="text-sm flex-1"
+                          onBlur={handleSaveExpense}
+                          onKeyPress={(e) => e.key === 'Enter' && handleSaveExpense()}
+                          autoFocus
+                          placeholder="Название расхода"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleSaveExpense}
+                          className="px-2"
+                        >
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingExpense(null)}
+                          className="px-2"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
                     ) : (
-                      <span 
-                        className="text-sm cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
-                        onClick={() => handleEditExpense(expense)}
-                      >
-                        {expense.name}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span 
+                          className="text-sm cursor-pointer hover:bg-gray-200 px-2 py-1 rounded flex-1"
+                          onClick={() => handleEditExpense(expense)}
+                          title="Нажмите для редактирования названия"
+                        >
+                          {expense.name}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEditExpense(expense)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity px-2"
+                          title="Редактировать название"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
@@ -307,13 +357,17 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
                       type="number"
                       value={expense.amount}
                       onChange={(e) => handleExpenseAmountChange(expense.id, parseFloat(e.target.value) || 0)}
-                      className="w-24 text-right text-sm"
+                      className="w-24 text-right text-sm border border-gray-300 rounded px-2 py-1"
+                      step="0.01"
+                      min="0"
+                      placeholder="0"
                     />
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => handleDeleteExpense(expense.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity px-2"
+                      title="Удалить расход"
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
@@ -324,23 +378,35 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
 
             {/* Add New Expense Form */}
             {isAddingNew && (
-              <div className="border-t pt-4 space-y-3">
+              <div className="border-t pt-4 space-y-3 bg-blue-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-blue-800 mb-2">Добавить новый расход:</div>
                 <div className="flex items-center space-x-2">
                   <Input
-                    placeholder="Название расхода"
+                    placeholder="Введите название расхода"
                     value={newExpenseName}
                     onChange={(e) => setNewExpenseName(e.target.value)}
                     className="flex-1"
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddExpense()}
+                    autoFocus
                   />
                   <Input
                     type="number"
                     placeholder="Сумма"
-                    value={newExpenseAmount}
+                    value={newExpenseAmount || ''}
                     onChange={(e) => setNewExpenseAmount(parseFloat(e.target.value) || 0)}
-                    className="w-24"
+                    className="w-32"
+                    step="0.01"
+                    min="0"
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddExpense()}
                   />
-                  <Button size="sm" onClick={handleAddExpense}>
-                    <Save className="w-4 h-4" />
+                  <Button 
+                    size="sm" 
+                    onClick={handleAddExpense}
+                    disabled={!newExpenseName.trim()}
+                    className="px-3"
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    Сохранить
                   </Button>
                   <Button 
                     size="sm" 
@@ -350,8 +416,10 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
                       setNewExpenseName('')
                       setNewExpenseAmount(0)
                     }}
+                    className="px-3"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4 mr-1" />
+                    Отмена
                   </Button>
                 </div>
               </div>
