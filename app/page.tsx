@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { FileText, Users, Package, TrendingUp, Calculator, LogOut, History } from 'lucide-react'
@@ -10,14 +10,32 @@ import OrderForm from '@/components/OrderForm'
 import OrderHistory from '@/components/OrderHistory'
 import ClientsDatabase from '@/components/ClientsDatabase'
 import ProductsDatabase from '@/components/ProductsDatabase'
-import SalesReports from '@/components/SalesReports'
-import FinancialDashboard from '@/components/FinancialDashboard'
+import SalesDatabase from '@/components/SalesDatabase'
+import FinanceDatabase from '@/components/FinanceDatabase'
 import CostManagement from '@/components/CostManagement'
 import Image from 'next/image'
 
 function MainApp() {
   const { isAuthenticated, login, logout, error } = useAuth()
   const [activeTab, setActiveTab] = useState('orders')
+  const [orders, setOrders] = useState<any[]>([])
+  const [salesData, setSalesData] = useState<any[]>([])
+
+  // Load orders from localStorage
+  useEffect(() => {
+    const savedOrders = localStorage.getItem('orders')
+    if (savedOrders) {
+      setOrders(JSON.parse(savedOrders))
+    }
+  }, [])
+
+  // Load sales data from localStorage
+  useEffect(() => {
+    const savedSales = localStorage.getItem('salesData')
+    if (savedSales) {
+      setSalesData(JSON.parse(savedSales))
+    }
+  }, [])
 
   if (!isAuthenticated) {
     return <LoginForm onLogin={login} error={error} />
@@ -112,11 +130,11 @@ function MainApp() {
           </TabsContent>
 
           <TabsContent value="sales">
-            <SalesReports />
+            <SalesDatabase orders={orders} />
           </TabsContent>
 
           <TabsContent value="finance">
-            <FinancialDashboard />
+            <FinanceDatabase salesData={salesData} />
           </TabsContent>
 
           <TabsContent value="costs">
