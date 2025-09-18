@@ -247,19 +247,30 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Финансы</h2>
           <p className="text-gray-500 mt-1">Управление финансами и расчеты</p>
-          <p className="text-xs text-gray-400">Debug: isAddingNew = {isAddingNew.toString()}</p>
         </div>
-        <Button 
-          onClick={() => {
-            console.log('Add button clicked, setting isAddingNew to true')
-            setIsAddingNew(true)
-          }}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white"
-          size="sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Добавить расход</span>
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => setIsAddingNew(true)}
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white"
+            size="sm"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Добавить расход</span>
+          </Button>
+          {isAddingNew && (
+            <Button 
+              onClick={() => {
+                setIsAddingNew(false)
+                setNewExpenseName('')
+                setNewExpenseAmount(0)
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Отмена
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Period Selection */}
@@ -304,6 +315,24 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Always visible Add New Expense section */}
+            <div className="bg-gray-50 p-3 rounded-lg border-2 border-dashed border-gray-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700">Добавить новый расход</h4>
+                  <p className="text-xs text-gray-500">Создайте новую позицию расходов</p>
+                </div>
+                <Button 
+                  onClick={() => setIsAddingNew(true)}
+                  className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white"
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Добавить</span>
+                </Button>
+              </div>
+            </div>
+
             <div className="space-y-3">
               {financeData.expenses.map((expense) => (
                 <div key={expense.id} className="flex justify-between items-center group p-2 rounded-lg hover:bg-gray-50 transition-colors">
@@ -383,10 +412,8 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
 
             {/* Add New Expense Form */}
             {isAddingNew && (
-              <div className="border-t pt-4 space-y-3 bg-blue-50 p-4 rounded-lg">
-                <div className="text-sm font-medium text-blue-800 mb-2">
-                  Добавить новый расход: (isAddingNew = {isAddingNew.toString()})
-                </div>
+              <div className="border-t pt-4 space-y-3 bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                <div className="text-sm font-medium text-green-800 mb-2">Добавить новый расход:</div>
                 <div className="flex items-center space-x-2">
                   <Input
                     placeholder="Введите название расхода"
