@@ -5,9 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Calendar, Plus, Trash2, Save } from 'lucide-react'
+import { Calendar, TrendingUp } from 'lucide-react'
 
 interface SalesItem {
   id: string
@@ -50,30 +48,37 @@ interface Order {
 }
 
 interface SalesDatabaseProps {
-  orders: Order[] // Orders from OrderForm
+  orders: Order[]
 }
 
 export default function SalesDatabase({ orders }: SalesDatabaseProps) {
   const [salesItems, setSalesItems] = useState<SalesItem[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState('current-month')
-  const [editingItem, setEditingItem] = useState<SalesItem | null>(null)
-  const [isAddingNew, setIsAddingNew] = useState(false)
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [useCustomRange, setUseCustomRange] = useState(false)
 
   // Convert orders to sales items
   const convertOrdersToSalesItems = (orders: Order[]): SalesItem[] => {
-    return orders.flatMap(order => 
-      order.items.map(item => ({
-        id: `${order.id}-${item.id}`,
-        date: order.orderDate,
-        name: item.name,
-        quantity: parseFloat(item.quantity) || 0,
-        pricePerUnit: parseFloat(item.price) || 0,
-        salesAmount: (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0),
-        costPerUnit: 0, // Default cost, can be edited later
-        totalCost: 0, // Default cost, can be edited later
-        profit: (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0)
-      }))
-    )
+    const salesItems: SalesItem[] = []
+    
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        salesItems.push({
+          id: `${order.id}-${item.id}`,
+          date: order.orderDate,
+          name: item.name,
+          quantity: parseFloat(item.quantity) || 0,
+          pricePerUnit: parseFloat(item.price) || 0,
+          salesAmount: (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0),
+          costPerUnit: 0, // Will be editable in the future
+          totalCost: 0, // Will be calculated based on costPerUnit
+          profit: (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0) // For now, profit = sales amount
+        })
+      })
+    })
+    
+    return salesItems
   }
 
   // Listen for order updates
@@ -121,110 +126,49 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
     localStorage.setItem('salesData', JSON.stringify(data))
   }
 
-  // Calculate totals
-  const calculateTotals = () => {
-    const totalRevenue = salesItems.reduce((sum, item) => sum + item.salesAmount, 0)
-    const totalCost = salesItems.reduce((sum, item) => sum + item.totalCost, 0)
-    const totalProfit = salesItems.reduce((sum, item) => sum + item.profit, 0)
-    
-    return { totalRevenue, totalCost, totalProfit }
-  }
+  // Filter sales items by period
+  const getFilteredSalesItems = (): SalesItem[] => {
+    let filtered = [...salesItems]
 
-  // Filter items by selected period
-  const getFilteredItems = () => {
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
-
-    switch (selectedPeriod) {
-      case 'current-month':
-        return salesItems.filter(item => {
-          const itemDate = new Date(item.date)
-          return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear
-        })
-      case 'last-month':
-        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1
-        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
-        return salesItems.filter(item => {
-          const itemDate = new Date(item.date)
-          return itemDate.getMonth() === lastMonth && itemDate.getFullYear() === lastMonthYear
-        })
-      case 'all-time':
-        return salesItems
-      default:
-        return salesItems
-    }
-  }
-
-  const filteredItems = getFilteredItems()
-  const totals = calculateTotals()
-
-  // Handle adding new item
-  const handleAddNew = () => {
-    const newItem: SalesItem = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      name: '',
-      quantity: 1,
-      pricePerUnit: 0,
-      salesAmount: 0,
-      costPerUnit: 0,
-      totalCost: 0,
-      profit: 0
-    }
-    setEditingItem(newItem)
-    setIsAddingNew(true)
-  }
-
-  // Handle editing item
-  const handleEdit = (item: SalesItem) => {
-    setEditingItem({ ...item })
-    setIsAddingNew(false)
-  }
-
-  // Handle saving item
-  const handleSave = () => {
-    if (!editingItem) return
-
-    // Calculate derived values
-    const salesAmount = editingItem.quantity * editingItem.pricePerUnit
-    const totalCost = editingItem.quantity * editingItem.costPerUnit
-    const profit = salesAmount - totalCost
-
-    const updatedItem = {
-      ...editingItem,
-      salesAmount,
-      totalCost,
-      profit
-    }
-
-    let updatedItems
-    if (isAddingNew) {
-      updatedItems = [...salesItems, updatedItem]
+    if (useCustomRange && startDate && endDate) {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.date)
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        return itemDate >= start && itemDate <= end
+      })
     } else {
-      updatedItems = salesItems.map(item => 
-        item.id === updatedItem.id ? updatedItem : item
-      )
+      const now = new Date()
+      const filterDate = new Date()
+      
+      switch (selectedPeriod) {
+        case 'current-month':
+          filterDate.setMonth(now.getMonth())
+          filterDate.setDate(1)
+          break
+        case 'last-month':
+          filterDate.setMonth(now.getMonth() - 1)
+          filterDate.setDate(1)
+          break
+        case 'all-time':
+          return filtered
+      }
+
+      if (selectedPeriod !== 'all-time') {
+        filtered = filtered.filter(item => new Date(item.date) >= filterDate)
+      }
     }
 
-    setSalesItems(updatedItems)
-    saveSalesData(updatedItems)
-    setEditingItem(null)
-    setIsAddingNew(false)
+    // Sort from latest to earliest
+    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
-  // Handle deleting item
-  const handleDelete = (id: string) => {
-    const updatedItems = salesItems.filter(item => item.id !== id)
-    setSalesItems(updatedItems)
-    saveSalesData(updatedItems)
-  }
+  const filteredSalesItems = getFilteredSalesItems()
 
-  // Handle input change
-  const handleInputChange = (field: keyof SalesItem, value: string | number) => {
-    if (!editingItem) return
-    setEditingItem({ ...editingItem, [field]: value })
-  }
+  // Calculate totals
+  const totalSalesAmount = filteredSalesItems.reduce((sum, item) => sum + item.salesAmount, 0)
+  const totalCost = filteredSalesItems.reduce((sum, item) => sum + item.totalCost, 0)
+  const totalProfit = filteredSalesItems.reduce((sum, item) => sum + item.profit, 0)
 
   return (
     <div className="space-y-6">
@@ -232,13 +176,7 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Продажи</h2>
-          <p className="text-gray-500 mt-1">Учет продаж и прибыли</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Button onClick={handleAddNew} className="flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>Добавить</span>
-          </Button>
+          <p className="text-gray-500 mt-1">Детализация продаж по товарам</p>
         </div>
       </div>
 
@@ -250,218 +188,145 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
             <span>Период</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex space-x-2">
             <Button
-              variant={selectedPeriod === 'current-month' ? 'default' : 'outline'}
-              onClick={() => setSelectedPeriod('current-month')}
+              variant={selectedPeriod === 'current-month' && !useCustomRange ? 'default' : 'outline'}
+              onClick={() => {
+                setSelectedPeriod('current-month')
+                setUseCustomRange(false)
+              }}
             >
               Текущий месяц
             </Button>
             <Button
-              variant={selectedPeriod === 'last-month' ? 'default' : 'outline'}
-              onClick={() => setSelectedPeriod('last-month')}
+              variant={selectedPeriod === 'last-month' && !useCustomRange ? 'default' : 'outline'}
+              onClick={() => {
+                setSelectedPeriod('last-month')
+                setUseCustomRange(false)
+              }}
             >
               Прошлый месяц
             </Button>
             <Button
-              variant={selectedPeriod === 'all-time' ? 'default' : 'outline'}
-              onClick={() => setSelectedPeriod('all-time')}
+              variant={selectedPeriod === 'all-time' && !useCustomRange ? 'default' : 'outline'}
+              onClick={() => {
+                setSelectedPeriod('all-time')
+                setUseCustomRange(false)
+              }}
             >
               Все время
             </Button>
+            <Button
+              variant={useCustomRange ? 'default' : 'outline'}
+              onClick={() => setUseCustomRange(true)}
+            >
+              Выбрать даты
+            </Button>
           </div>
+
+          {/* Custom Date Range */}
+          {useCustomRange && (
+            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="startDate">С:</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="endDate">По:</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setUseCustomRange(false)
+                  setStartDate('')
+                  setEndDate('')
+                }}
+              >
+                Отмена
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Sales Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Таблица продаж</CardTitle>
+          <CardTitle className="flex items-center space-x-2">
+            <TrendingUp className="w-5 h-5" />
+            <span>Детализация продаж</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">Дата</TableHead>
-                  <TableHead className="min-w-[200px]">Наименование</TableHead>
-                  <TableHead className="w-[80px]">Кол-во</TableHead>
-                  <TableHead className="w-[120px]">Цена за шт</TableHead>
-                  <TableHead className="w-[120px]">Сумма продажи</TableHead>
-                  <TableHead className="w-[120px]">Себестоимость, шт</TableHead>
-                  <TableHead className="w-[120px]">Сумма себестоимость</TableHead>
-                  <TableHead className="w-[120px]">Profit</TableHead>
-                  <TableHead className="w-[100px]">Действия</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{new Date(item.date).toLocaleDateString('ru-RU')}</TableCell>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.quantity.toFixed(2)}</TableCell>
-                    <TableCell>{item.pricePerUnit.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}</TableCell>
-                    <TableCell className="font-semibold text-orange-600">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-3 font-semibold">Дата</th>
+                  <th className="text-left p-3 font-semibold">Наименование</th>
+                  <th className="text-right p-3 font-semibold">Кол-во</th>
+                  <th className="text-right p-3 font-semibold">Цена за шт</th>
+                  <th className="text-right p-3 font-semibold">Сумма продажи</th>
+                  <th className="text-right p-3 font-semibold">Себестоимость, шт</th>
+                  <th className="text-right p-3 font-semibold">Сумма себестоимость</th>
+                  <th className="text-right p-3 font-semibold">Profit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredSalesItems.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-50">
+                    <td className="p-3 text-sm">
+                      {new Date(item.date).toLocaleDateString('ru-RU')}
+                    </td>
+                    <td className="p-3 text-sm font-medium">{item.name}</td>
+                    <td className="p-3 text-sm text-right">{item.quantity.toFixed(2)}</td>
+                    <td className="p-3 text-sm text-right">{item.pricePerUnit.toFixed(2)}</td>
+                    <td className="p-3 text-sm text-right font-semibold text-orange-600">
                       {item.salesAmount.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell>{item.costPerUnit.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}</TableCell>
-                    <TableCell>{item.totalCost.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}</TableCell>
-                    <TableCell className={`font-semibold ${item.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    </td>
+                    <td className="p-3 text-sm text-right">{item.costPerUnit.toFixed(2)}</td>
+                    <td className="p-3 text-sm text-right">{item.totalCost.toFixed(2)}</td>
+                    <td className="p-3 text-sm text-right font-semibold text-green-600">
                       {item.profit.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(item)}
-                        >
-                          Редактировать
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-gray-300 bg-gray-50">
+                  <td className="p-3 font-bold" colSpan={4}>Итого:</td>
+                  <td className="p-3 text-right font-bold text-orange-600">
+                    {totalSalesAmount.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="p-3 text-right font-bold">
+                    {filteredSalesItems.length > 0 ? (totalCost / filteredSalesItems.reduce((sum, item) => sum + item.quantity, 0)).toFixed(2) : '0.00'}
+                  </td>
+                  <td className="p-3 text-right font-bold">
+                    {totalCost.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="p-3 text-right font-bold text-green-600">
+                    {totalProfit.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </CardContent>
       </Card>
-
-      {/* Totals Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Итого за период</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {totals.totalRevenue.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
-              </div>
-              <div className="text-sm text-gray-500">Общая выручка</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {totals.totalCost.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
-              </div>
-              <div className="text-sm text-gray-500">Себестоимость</div>
-            </div>
-            <div className="text-center">
-              <div className={`text-2xl font-bold ${totals.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {totals.totalProfit.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
-              </div>
-              <div className="text-sm text-gray-500">Прибыль</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Edit Dialog */}
-      {editingItem && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{isAddingNew ? 'Добавить запись' : 'Редактировать запись'}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="date">Дата</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={editingItem.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="name">Наименование</Label>
-                <Input
-                  id="name"
-                  value={editingItem.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="Название товара/услуги"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="quantity">Количество</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  step="0.01"
-                  value={editingItem.quantity}
-                  onChange={(e) => handleInputChange('quantity', parseFloat(e.target.value) || 0)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="pricePerUnit">Цена за шт</Label>
-                <Input
-                  id="pricePerUnit"
-                  type="number"
-                  step="0.01"
-                  value={editingItem.pricePerUnit}
-                  onChange={(e) => handleInputChange('pricePerUnit', parseFloat(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="costPerUnit">Себестоимость за шт</Label>
-                <Input
-                  id="costPerUnit"
-                  type="number"
-                  step="0.01"
-                  value={editingItem.costPerUnit}
-                  onChange={(e) => handleInputChange('costPerUnit', parseFloat(e.target.value) || 0)}
-                />
-              </div>
-              <div className="flex items-end">
-                <Button onClick={handleSave} className="w-full">
-                  <Save className="w-4 h-4 mr-2" />
-                  Сохранить
-                </Button>
-              </div>
-            </div>
-
-            {/* Calculated Values Display */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold mb-2">Рассчитанные значения:</h4>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Сумма продажи:</span>
-                  <span className="ml-2 font-semibold">
-                    {(editingItem.quantity * editingItem.pricePerUnit).toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Сумма себестоимости:</span>
-                  <span className="ml-2 font-semibold">
-                    {(editingItem.quantity * editingItem.costPerUnit).toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Прибыль:</span>
-                  <span className={`ml-2 font-semibold ${(editingItem.quantity * editingItem.pricePerUnit - editingItem.quantity * editingItem.costPerUnit) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {(editingItem.quantity * editingItem.pricePerUnit - editingItem.quantity * editingItem.costPerUnit).toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
