@@ -38,8 +38,20 @@ interface FinanceData {
   fiftyPercent: number
 }
 
+interface SalesItem {
+  id: string
+  date: string
+  name: string
+  quantity: number
+  pricePerUnit: number
+  salesAmount: number
+  costPerUnit: number
+  totalCost: number
+  profit: number
+}
+
 interface FinanceDatabaseProps {
-  salesData: any[] // Sales data from SalesDatabase
+  salesData: SalesItem[] // Sales data from SalesDatabase
 }
 
 export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
@@ -168,7 +180,6 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
     }
   }
 
-  const filteredSalesData = getFilteredSalesData()
   const calculatedData = calculateDerivedValues(financeData)
 
   return (

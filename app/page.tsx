@@ -15,11 +15,51 @@ import FinanceDatabase from '@/components/FinanceDatabase'
 import CostManagement from '@/components/CostManagement'
 import Image from 'next/image'
 
+interface Order {
+  id: string
+  orderNumber: string
+  customerName: string
+  customerPhone: string
+  orderDate: string
+  readyDate?: string
+  prescription: {
+    od_sph: string
+    od_cyl: string
+    od_ax: string
+    os_sph: string
+    os_cyl: string
+    os_ax: string
+    pd: string
+    add: string
+  }
+  items: Array<{
+    id: string
+    name: string
+    quantity: string
+    price: string
+  }>
+  total: number
+  paid: number
+  debt: number
+}
+
+interface SalesItem {
+  id: string
+  date: string
+  name: string
+  quantity: number
+  pricePerUnit: number
+  salesAmount: number
+  costPerUnit: number
+  totalCost: number
+  profit: number
+}
+
 function MainApp() {
   const { isAuthenticated, login, logout, error } = useAuth()
   const [activeTab, setActiveTab] = useState('orders')
-  const [orders, setOrders] = useState<any[]>([])
-  const [salesData, setSalesData] = useState<any[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [salesData, setSalesData] = useState<SalesItem[]>([])
 
   // Load orders from localStorage
   useEffect(() => {

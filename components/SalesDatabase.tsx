@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Calendar, Plus, Trash2, Save, Download } from 'lucide-react'
+import { Calendar, Plus, Trash2, Save } from 'lucide-react'
 
 interface SalesItem {
   id: string
@@ -21,8 +21,36 @@ interface SalesItem {
   profit: number
 }
 
+interface Order {
+  id: string
+  orderNumber: string
+  customerName: string
+  customerPhone: string
+  orderDate: string
+  readyDate?: string
+  prescription: {
+    od_sph: string
+    od_cyl: string
+    od_ax: string
+    os_sph: string
+    os_cyl: string
+    os_ax: string
+    pd: string
+    add: string
+  }
+  items: Array<{
+    id: string
+    name: string
+    quantity: string
+    price: string
+  }>
+  total: number
+  paid: number
+  debt: number
+}
+
 interface SalesDatabaseProps {
-  orders: any[] // Orders from OrderForm
+  orders: Order[] // Orders from OrderForm
 }
 
 export default function SalesDatabase({ orders }: SalesDatabaseProps) {
@@ -31,96 +59,41 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
   const [editingItem, setEditingItem] = useState<SalesItem | null>(null)
   const [isAddingNew, setIsAddingNew] = useState(false)
 
-  // Load sales data from localStorage
+  // Convert orders to sales items
+  const convertOrdersToSalesItems = (orders: Order[]): SalesItem[] => {
+    return orders.flatMap(order => 
+      order.items.map(item => ({
+        id: `${order.id}-${item.id}`,
+        date: order.orderDate,
+        name: item.name,
+        quantity: parseFloat(item.quantity) || 0,
+        pricePerUnit: parseFloat(item.price) || 0,
+        salesAmount: (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0),
+        costPerUnit: 0, // Default cost, can be edited later
+        totalCost: 0, // Default cost, can be edited later
+        profit: (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0)
+      }))
+    )
+  }
+
+  // Load sales data from localStorage and merge with orders
   useEffect(() => {
     const savedSales = localStorage.getItem('salesData')
+    let existingSales: SalesItem[] = []
+    
     if (savedSales) {
-      setSalesItems(JSON.parse(savedSales))
-    } else {
-      // Initialize with sample data based on screenshot
-      const sampleData: SalesItem[] = [
-        {
-          id: '1',
-          date: '2025-06-02',
-          name: 'Оправа Azzaro',
-          quantity: 1,
-          pricePerUnit: 90000,
-          salesAmount: 90000,
-          costPerUnit: 131610,
-          totalCost: 131610,
-          profit: -41610
-        },
-        {
-          id: '2',
-          date: '2025-06-02',
-          name: 'Линзы Hoya Work Style Business 1.60 HVLL BLC 4 метра',
-          quantity: 1,
-          pricePerUnit: 81000,
-          salesAmount: 81000,
-          costPerUnit: 0,
-          totalCost: 0,
-          profit: 81000
-        },
-        {
-          id: '3',
-          date: '2025-06-03',
-          name: 'Air Optix',
-          quantity: 2,
-          pricePerUnit: 2750,
-          salesAmount: 5500,
-          costPerUnit: 0,
-          totalCost: 0,
-          profit: 5500
-        },
-        {
-          id: '4',
-          date: '2025-06-04',
-          name: 'Оправа Sonata',
-          quantity: 1,
-          pricePerUnit: 30000,
-          salesAmount: 30000,
-          costPerUnit: 0,
-          totalCost: 0,
-          profit: 30000
-        },
-        {
-          id: '5',
-          date: '2025-06-06',
-          name: 'One Day Dailies Agua Comfort (10700тг)',
-          quantity: 1,
-          pricePerUnit: 10700,
-          salesAmount: 10700,
-          costPerUnit: 0,
-          totalCost: 0,
-          profit: 10700
-        },
-        {
-          id: '6',
-          date: '2025-06-07',
-          name: 'Ремонт',
-          quantity: 1,
-          pricePerUnit: 3000,
-          salesAmount: 3000,
-          costPerUnit: 0,
-          totalCost: 0,
-          profit: 3000
-        },
-        {
-          id: '7',
-          date: '2025-06-07',
-          name: 'Оправа RB 3016',
-          quantity: 1,
-          pricePerUnit: 25000,
-          salesAmount: 25000,
-          costPerUnit: 0,
-          totalCost: 0,
-          profit: 25000
-        }
-      ]
-      setSalesItems(sampleData)
-      localStorage.setItem('salesData', JSON.stringify(sampleData))
+      existingSales = JSON.parse(savedSales)
     }
-  }, [])
+    
+    // Convert orders to sales items and merge with existing data
+    const orderSalesItems = convertOrdersToSalesItems(orders)
+    const mergedSales = [...existingSales, ...orderSalesItems.filter(orderItem => 
+      !existingSales.some(existingItem => existingItem.id === orderItem.id)
+    )]
+    
+    setSalesItems(mergedSales)
+    localStorage.setItem('salesData', JSON.stringify(mergedSales))
+  }, [orders])
 
   // Save sales data to localStorage
   const saveSalesData = (data: SalesItem[]) => {
