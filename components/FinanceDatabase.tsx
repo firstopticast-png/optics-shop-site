@@ -247,10 +247,15 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Финансы</h2>
           <p className="text-gray-500 mt-1">Управление финансами и расчеты</p>
+          <p className="text-xs text-gray-400">Debug: isAddingNew = {isAddingNew.toString()}</p>
         </div>
         <Button 
-          onClick={() => setIsAddingNew(true)}
-          className="flex items-center space-x-2"
+          onClick={() => {
+            console.log('Add button clicked, setting isAddingNew to true')
+            setIsAddingNew(true)
+          }}
+          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white"
+          size="sm"
         >
           <Plus className="w-4 h-4" />
           <span>Добавить расход</span>
@@ -379,7 +384,9 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
             {/* Add New Expense Form */}
             {isAddingNew && (
               <div className="border-t pt-4 space-y-3 bg-blue-50 p-4 rounded-lg">
-                <div className="text-sm font-medium text-blue-800 mb-2">Добавить новый расход:</div>
+                <div className="text-sm font-medium text-blue-800 mb-2">
+                  Добавить новый расход: (isAddingNew = {isAddingNew.toString()})
+                </div>
                 <div className="flex items-center space-x-2">
                   <Input
                     placeholder="Введите название расхода"
