@@ -26,7 +26,23 @@ interface FinanceData {
   fiftyPercent: number
 }
 
-export default function FinanceDatabase() {
+interface SalesItem {
+  id: string
+  date: string
+  name: string
+  quantity: number
+  pricePerUnit: number
+  salesAmount: number
+  costPerUnit: number
+  totalCost: number
+  profit: number
+}
+
+interface FinanceDatabaseProps {
+  salesData: SalesItem[]
+}
+
+export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
   const [financeData, setFinanceData] = useState<FinanceData>({
     expenses: [
       { id: '1', name: 'зарплата оф и налоги', amount: 200000 },
@@ -68,6 +84,16 @@ export default function FinanceDatabase() {
     }
   }, [])
 
+  // Recalculate values when salesData changes
+  useEffect(() => {
+    const calculatedValues = calculateDerivedValues(financeData.expenses)
+    const updatedData = {
+      ...financeData,
+      ...calculatedValues
+    }
+    setFinanceData(updatedData)
+  }, [salesData])
+
   // Save finance data to localStorage
   const saveFinanceData = (data: FinanceData) => {
     localStorage.setItem('financeData', JSON.stringify(data))
@@ -78,9 +104,9 @@ export default function FinanceDatabase() {
     const totalCostsExcludingCOGS = expenses.reduce((sum, expense) => sum + expense.amount, 0)
     const dailyCosts30Days = totalCostsExcludingCOGS / 30
 
-    // These would normally come from sales data, but for now we'll use static values
-    const totalRevenue = 3672600
-    const costOfGoodsSold = 1421488
+    // Calculate from actual sales data
+    const totalRevenue = salesData.reduce((sum, item) => sum + item.salesAmount, 0)
+    const costOfGoodsSold = salesData.reduce((sum, item) => sum + item.totalCost, 0)
     const totalNetProfit = totalRevenue - costOfGoodsSold - totalCostsExcludingCOGS
     const fiftyPercent = totalNetProfit * 0.5
 

@@ -191,7 +191,7 @@ function MainApp() {
           </TabsContent>
 
           <TabsContent value="finance">
-            <FinanceDatabase />
+            <FinanceDatabase salesData={salesData} />
           </TabsContent>
 
           <TabsContent value="costs">
