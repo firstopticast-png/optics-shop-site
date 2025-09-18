@@ -76,7 +76,28 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
     )
   }
 
-  // Load sales data from localStorage and merge with orders
+  // Listen for order updates
+  useEffect(() => {
+    const handleOrdersUpdate = (event: CustomEvent) => {
+      const updatedOrders = event.detail as Order[]
+      const orderSalesItems = convertOrdersToSalesItems(updatedOrders)
+      const existingSales = salesItems.filter(item => !item.id.includes('-')) // Keep manually added items
+      const mergedSales = [...existingSales, ...orderSalesItems.filter(orderItem => 
+        !existingSales.some(existingItem => existingItem.id === orderItem.id)
+      )]
+      
+      setSalesItems(mergedSales)
+      saveSalesData(mergedSales)
+    }
+
+    window.addEventListener('ordersUpdated', handleOrdersUpdate as EventListener)
+    
+    return () => {
+      window.removeEventListener('ordersUpdated', handleOrdersUpdate as EventListener)
+    }
+  }, [salesItems])
+
+  // Initial load of sales data
   useEffect(() => {
     const savedSales = localStorage.getItem('salesData')
     let existingSales: SalesItem[] = []
@@ -93,7 +114,7 @@ export default function SalesDatabase({ orders }: SalesDatabaseProps) {
     
     setSalesItems(mergedSales)
     localStorage.setItem('salesData', JSON.stringify(mergedSales))
-  }, [orders])
+  }, []) // Only run once on mount
 
   // Save sales data to localStorage
   const saveSalesData = (data: SalesItem[]) => {

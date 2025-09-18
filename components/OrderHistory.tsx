@@ -55,7 +55,11 @@ interface Client {
   notes: string
 }
 
-export default function OrderHistory() {
+interface OrderHistoryProps {
+  onOrdersUpdated?: (orders: Order[]) => void
+}
+
+export default function OrderHistory({ onOrdersUpdated }: OrderHistoryProps) {
   const [orders, setOrders] = useState<Order[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
@@ -331,6 +335,11 @@ export default function OrderHistory() {
     
     // Save to localStorage
     localStorage.setItem('optics-sonata-orders', JSON.stringify(updatedOrders))
+    
+    // Notify parent component about order updates
+    if (onOrdersUpdated) {
+      onOrdersUpdated(updatedOrders)
+    }
     
     // Show success message
     alert('Заказ обновлен!')

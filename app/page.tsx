@@ -69,13 +69,22 @@ function MainApp() {
     }
   }, [])
 
-  // Load sales data from localStorage
-  useEffect(() => {
-    const savedSales = localStorage.getItem('salesData')
-    if (savedSales) {
-      setSalesData(JSON.parse(savedSales))
-    }
-  }, [])
+  // Handle order updates
+  const handleOrderUpdate = (updatedOrders: Order[]) => {
+    setOrders(updatedOrders)
+    // Trigger sales data update
+    const event = new CustomEvent('ordersUpdated', { detail: updatedOrders })
+    window.dispatchEvent(event)
+  }
+
+  // Handle new order creation
+  const handleNewOrder = (newOrder: Order) => {
+    const updatedOrders = [...orders, newOrder]
+    setOrders(updatedOrders)
+    // Trigger sales data update
+    const event = new CustomEvent('ordersUpdated', { detail: updatedOrders })
+    window.dispatchEvent(event)
+  }
 
   if (!isAuthenticated) {
     return <LoginForm onLogin={login} error={error} />
@@ -154,11 +163,11 @@ function MainApp() {
           </TabsList>
 
           <TabsContent value="orders">
-            <OrderForm />
+            <OrderForm onOrderCreated={handleNewOrder} />
           </TabsContent>
 
           <TabsContent value="order-history">
-            <OrderHistory />
+            <OrderHistory onOrdersUpdated={handleOrderUpdate} />
           </TabsContent>
 
           <TabsContent value="clients">

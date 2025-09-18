@@ -38,7 +38,25 @@ interface Client {
   notes: string
 }
 
-export default function OrderForm() {
+interface OrderFormProps {
+  onOrderCreated?: (order: Order) => void
+}
+
+interface Order {
+  id: string
+  orderNumber: string
+  customerName: string
+  customerPhone: string
+  orderDate: string
+  readyDate?: string
+  prescription: PrescriptionData
+  items: OrderItem[]
+  total: number
+  paid: number
+  debt: number
+}
+
+export default function OrderForm({ onOrderCreated }: OrderFormProps) {
   const [orderNumber, setOrderNumber] = useState(`2025-${String(Date.now()).slice(-3)}`)
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
@@ -218,6 +236,11 @@ export default function OrderForm() {
     
     // Show success message
     alert(`Заказ №${orderNumber} успешно сохранен!`)
+    
+    // Notify parent component about new order
+    if (onOrderCreated) {
+      onOrderCreated(orderData)
+    }
     
     // Reset form
     setOrderNumber(`2025-${String(Date.now()).slice(-3)}`)
