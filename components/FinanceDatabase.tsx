@@ -248,29 +248,19 @@ export default function FinanceDatabase({ salesData }: FinanceDatabaseProps) {
           <h2 className="text-2xl font-bold text-gray-900">Финансы</h2>
           <p className="text-gray-500 mt-1">Управление финансами и расчеты</p>
         </div>
-        <div className="flex space-x-2">
+        {isAddingNew && (
           <Button 
-            onClick={() => setIsAddingNew(true)}
-            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => {
+              setIsAddingNew(false)
+              setNewExpenseName('')
+              setNewExpenseAmount(0)
+            }}
+            variant="outline"
             size="sm"
           >
-            <Plus className="w-4 h-4" />
-            <span>Добавить расход</span>
+            Отмена
           </Button>
-          {isAddingNew && (
-            <Button 
-              onClick={() => {
-                setIsAddingNew(false)
-                setNewExpenseName('')
-                setNewExpenseAmount(0)
-              }}
-              variant="outline"
-              size="sm"
-            >
-              Отмена
-            </Button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Period Selection */}
